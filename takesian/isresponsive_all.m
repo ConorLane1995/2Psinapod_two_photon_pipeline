@@ -44,8 +44,6 @@ for a=1;%:length(setup.mousename)
         data.([mouseID]).response.isRespPos(i) = maxpeak_avg(i,:) > std_level*mean(base_std(i)) & window_avg(i,:)>0; %will be 0 or 1
         data.([mouseID]).response.isRespNeg(i) = minpeak_avg(i,:) < -std_level*mean(base_std(i)) & window_avg(i,:)<0;
        
-       
-     
     end
     
     
