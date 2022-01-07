@@ -50,8 +50,6 @@ def main():
     config_dict = {}
     config_dict['WorkingDir'] = wd
 
-    # First make sure we don't already have a config file
-    #if osp.exists("")
 
 if __name__=='__main__':
     main()
