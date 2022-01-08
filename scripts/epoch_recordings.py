@@ -36,20 +36,33 @@ def get_onset_frames(stim):
     # o_frames = stim[o_frames_idx,0]
     # print(o_frames)
 
-    max_value = np.amax(stim[:][1].round())
-    testing = np.where(stim[:][1].round() == max_value)
-    print(testing)
+    # get our max voltage value so we know what the trigger looks like
+    max_value = max(stim, key=lambda x:x[1])
+    max_value = max_value[1]
 
-    o_frames = np.take(stim,testing,0)
-    print(o_frames)
+    onset_stim_frames = []
+    # get idx where the trigger was sent (stim onset)
+    for i in range(len(stim)):
+        (frame,voltage) = stim[i]
+        if voltage.round() == max_value.round():
+            onset_stim_frames.append(frame)
+
+    # eliminate our extra frames included because they were close to the max voltage value
+    onset_stim_frames_good = []
+    curr_frame = onset_stim_frames[0]
+    onset_stim_frames_good.append(curr_frame)
+    for i in onset_stim_frames:
+        if i - curr_frame > 1000:
+            curr_frame = i
+            onset_stim_frames_good.append(i)
 
     # find the actual times when the stimulus occured so we can convert it to flu frames
-    o_times = o_frames/stim_fr
+    onset_stim_times = [x / stim_fr for x in onset_stim_frames_good]
 
     # get the flu frames when the onsets occured
-    o_frames_flu_trace = o_times*stim_fr
+    onset_flu_frames = [x*flu_fr for x in onset_stim_times]
 
-    return o_frames_flu_trace
+    return onset_flu_frames
 
 
 
@@ -59,21 +72,18 @@ def main():
     # with open(csv_path,'r') as csvfile:
     #     stim = csv.reader(csvfile,skip_header=True)
 
-    stim = np.genfromtxt(csv_path,delimiter=',',dtype=None,skip_header=True)
+    stim = np.genfromtxt(csv_path,delimiter=',',skip_header=True)
     fl = np.load(f_path)
     fneu = np.load(fneu_path)
     iscell = np.load(iscell_path)
 
     fl = fl[:,800:len(fl[0])]
-    print(stim[1][1])
 
     # make sure the stim file and flu traces are roughly the same length
     # if they aren't the same, we'll exit the code 
     if not validate_lengths(stim, fl):
         raise ValueError("The lengths of stimulus file and the fluorescence traces are not the same. Exiting.")
 
-
-    print(stim.shape)
     # get an array of all the stimulus onset times in terms of fluorescence frames
     onset_frames = get_onset_frames(stim)
 
