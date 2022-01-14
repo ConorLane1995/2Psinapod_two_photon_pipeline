@@ -12,9 +12,8 @@ epoch_end = 2000 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
 csv_path = "D:/15khz/TSeries-01042022-1431-120_Cycle00001_VoltageRecording_001.csv"
-
 parent_dir = "D:/15khz/"
-
+output_path = parent_dir + "epoched_F.npy"
 
 def validate_lengths(stim,fl):
     # make sure our stimulus file corresponds with our fluorescence trace in length
@@ -100,21 +99,21 @@ def plot_trace(fl,onsets):
     plt.show()
 
 
-def plot_trials(epoched_traces):
+def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
     # epoched traces is an nCell x nTrial x nFrame matrix
 
-    fig, axs = plt.subplots(nrows=5, ncols=1)
+    fig, axs = plt.subplots(nrows=n_trial_samples, ncols=1)
 
     # get a random sampling of 10 cells
-    cell_sample = random.sample(range(len(epoched_traces)),10)
+    cell_sample = random.sample(range(len(epoched_traces)),n_cell_samples)
 
     # get a random sampling of trials
-    trial_sample = random.sample(range(len(epoched_traces[0])),5)
+    trial_sample = random.sample(range(len(epoched_traces[0])),n_trial_samples)
 
-    for trial in range(5):
+    for trial in range(n_trial_samples):
 
         # for each cell we've sampled
-        for cell in range(10):
+        for cell in range(n_cell_samples):
 
             axs[trial].plot(epoched_traces[cell_sample[cell],trial_sample[trial],:])
 
@@ -122,7 +121,7 @@ def plot_trials(epoched_traces):
         if trial == 0:
             axs[trial].set_title("Random sampling of cells and trials from the current recording")
             
-        if trial != 4:
+        if trial != n_trial_samples-1:
             axs[trial].get_xaxis().set_visible(False)
             axs[trial].get_yaxis().set_visible(False)
         else:
@@ -148,9 +147,9 @@ def main():
 
 
     stim = np.genfromtxt(csv_path,delimiter=',',skip_header=True)
-    fl = np.load(parent_dir + "F.npy")
-    fneu = np.load(parent_dir + "Fneu.npy")
-    iscell = np.load(parent_dir + "iscell.npy")
+    fl = np.load(parent_dir + "F.npy",allow_pickle=True)
+    fneu = np.load(parent_dir + "Fneu.npy",allow_pickle=True)
+    iscell = np.load(parent_dir + "iscell.npy",allow_pickle=True)
 
     # make sure the stim file and flu traces are roughly the same length
     # if they aren't the same, we'll exit the code 
@@ -160,13 +159,18 @@ def main():
     # get an array of all the stimulus onset times in terms of fluorescence frames
     onset_frames = get_onset_frames(stim)
 
+    fl_corr = fl - 0.7*fneu
+
     # get fluorescence traces for the ROIs that are actually cells
-    fl_cells = fl[np.where(iscell[:,0]==1)[0],:]
+    fl_cells = fl_corr[np.where(iscell[:,0]==1)[0],:]
 
     # epoch the traces so we just get the fluorescence during trials
-    d = epoch_traces(fl_cells,onset_frames)
+    epoched_traces = epoch_traces(fl_cells,onset_frames)
 
-    plot_trials(d)
+    plot_trials(epoched_traces,8,15)
+
+    # save our epoched recording
+    np.save(output_path,epoched_traces)
 
 if __name__=='__main__':
     main()
