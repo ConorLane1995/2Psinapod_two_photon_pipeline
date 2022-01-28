@@ -31,6 +31,12 @@ def format_trials(traces,stim):
     for freq in freq_dict:
         freq_dict[freq] = dict.fromkeys(np.unique(stim[:,1]))
 
+    # make empty dictionaries so we can index properly later
+    for freq in freq_dict:
+        # print(type(freq))
+        for intensity in freq_dict[freq]:
+            freq_dict[freq][intensity] = {}
+
     # make a really shitty temporary map so we can keep track of how many repetitions of this trial we've seen
     # just going to add together the frequency and intensity to index it
     # biggest element we'll need is max(frequency) + max(intensity)
@@ -46,8 +52,10 @@ def format_trials(traces,stim):
         i = stim[trial,1]
 
         num_rep = temp_map[f+i]+1
+        temp_map[f+i] += 1
+
         # using the frequency and intensity to index our dictionary to store our trace
-        freq_dict[f][i] = {num_rep: traces[trial,:]}
+        freq_dict[f][i][num_rep] = traces[trial,:]
 
     return freq_dict
 
