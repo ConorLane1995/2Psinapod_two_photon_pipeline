@@ -7,13 +7,14 @@ import random
 ### SET VARIABLES FOR NOW - EVENTUALLY TAKE IT FROM THE CONFIG FILE OR A CSV WITH ALL RECORDINGS ###
 stim_fr = 100
 flu_fr = 10
-epoch_start = -100 # in ms
-epoch_end = 2000 # in ms
+epoch_start = -500 # in ms
+epoch_end = 2700 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-csv_path = "D:/15khz/TSeries-01042022-1431-120_Cycle00001_VoltageRecording_001.csv"
-parent_dir = "D:/15khz/"
-output_path = parent_dir + "epoched_F.npy"
+BASE_PATH = "D:/vid127_pseudorandom_stim/"
+csv_path = "TSeries-01202022-1406-127_Cycle00001_VoltageRecording_001.csv"
+output_path = BASE_PATH + "epoched_F.npy"
+
 
 def validate_lengths(stim,fl):
     # make sure our stimulus file corresponds with our fluorescence trace in length
@@ -21,7 +22,7 @@ def validate_lengths(stim,fl):
     stim_time = len(stim)/stim_fr # f * s/f = s
     fl_time = len(fl[0])/flu_fr
 
-    # if one is short or longer by more than the allowed error, return False so we can either throw and error 
+    # if one is short or longer by more than the allowed error, return False so we can either throw an error 
     if stim_time < fl_time-stim_fl_error_allowed or stim_time > fl_time+stim_fl_error_allowed:
         return False
     else:
@@ -73,6 +74,7 @@ def epoch_traces(fl,onset_frames):
 
     # now we intitialize an array to store what we'll ultimately return
     epoched_traces = np.zeros((len(fl),len(onset_frames),trial_length_in_frames))
+
 
     # start filling up this empty matrix
     # loop through each ROI
@@ -146,10 +148,10 @@ def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
 def main():
 
 
-    stim = np.genfromtxt(csv_path,delimiter=',',skip_header=True)
-    fl = np.load(parent_dir + "F.npy",allow_pickle=True)
-    fneu = np.load(parent_dir + "Fneu.npy",allow_pickle=True)
-    iscell = np.load(parent_dir + "iscell.npy",allow_pickle=True)
+    stim = np.genfromtxt(BASE_PATH + csv_path,delimiter=',',skip_header=True)
+    fl = np.load(BASE_PATH + "F.npy",allow_pickle=True)
+    fneu = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True)
+    iscell = np.load(BASE_PATH + "iscell.npy",allow_pickle=True)
 
     # make sure the stim file and flu traces are roughly the same length
     # if they aren't the same, we'll exit the code 
@@ -170,7 +172,7 @@ def main():
     plot_trials(epoched_traces,8,15)
 
     # save our epoched recording
-    np.save(output_path,epoched_traces)
+    # np.save(output_path,epoched_traces)
 
 if __name__=='__main__':
     main()
