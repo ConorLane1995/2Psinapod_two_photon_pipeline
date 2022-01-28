@@ -62,7 +62,7 @@ def format_trials(traces,stim):
 def format_all_cells(epoched_traces,stim):
 
     # make a dictionary where each cell is one key
-    num_cells = len(epoched_traces[0])
+    num_cells = len(epoched_traces)
     d = dict.fromkeys(range(1,num_cells+1))
 
     # for each cell
