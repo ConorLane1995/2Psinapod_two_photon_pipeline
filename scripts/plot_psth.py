@@ -5,7 +5,8 @@ import pickle
 import random
 
 BASE_PATH = "D:/vid127_pseudorandom_stim/"
-traces_file = "cell_traces_with_stims.pkl"
+# traces_file = "cell_traces_with_stims2.pkl"
+traces_file = "traces_with_activity_boolean.pkl"
 
 def get_avg_trace(cell):
 
@@ -63,7 +64,7 @@ def plot_trials(epoched_traces):
         
         axs[cell,0].vlines(5,0,50)
         axs[cell,0].set_ylim([0,50])
-        axs[cell,0].set_xlim([0,31])
+        axs[cell,0].set_xlim([0,32])
 
     for cell in range(10):
         this_cell_d = get_avg_trace(epoched_traces[cell_sample[cell+10]])
@@ -77,7 +78,7 @@ def plot_trials(epoched_traces):
 
         axs[cell,1].vlines(5,0,50)
         axs[cell,1].set_ylim([0,50])
-        axs[cell,1].set_xlim([0,31])
+        axs[cell,1].set_xlim([0,32])
 
 
     # for each cell, plot the average trace
@@ -87,6 +88,19 @@ def plot_trials(epoched_traces):
 
     plt.show()
 
+def get_active_cells(traces):
+    # going to return a dictionary with only active cells, formatted exactly the same as traces
+
+    d = dict.fromkeys(traces.keys())
+
+    for cell in traces:
+        if traces[cell]['active'] == True:
+            d[cell] = traces[cell]
+            d[cell].pop('active',None)
+        else:
+            d.pop(cell,None)
+
+    return d
 
 def main():
 
@@ -95,7 +109,9 @@ def main():
     
     # trace = get_avg_trace(traces[1])
     # print(trace)
-    plot_trials(traces)
+    active_cells = get_active_cells(traces)
+
+    plot_trials(active_cells)
 
 if __name__=="__main__":
     main()

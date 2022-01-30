@@ -136,7 +136,7 @@ def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
 
         # set the limits on the axes
         axs[trial].set_ylim([0,100])
-        axs[trial].set_xlim([0,0])
+        # axs[trial].set_xlim([0,0])
 
         # set the xticks so we're seeing the time
         axs[trial].set_xticks(range(1,20,5),range(0,2000,500))
@@ -169,10 +169,10 @@ def main():
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_traces(fl_cells,onset_frames)
 
-    plot_trials(epoched_traces,8,15)
+    # plot_trials(epoched_traces,8,15)
 
     # save our epoched recording
-    # np.save(output_path,epoched_traces)
+    np.save(output_path,epoched_traces)
 
 if __name__=='__main__':
     main()
