@@ -40,7 +40,9 @@ def plot_trials(epoched_traces):
     # {cell : freq : intensity: repetition: trace}
 
     # get a random sampling of 20 cells
-    cell_sample = random.sample(range(len(epoched_traces)),20)
+    # sample_idx = random.sample(range(len(epoched_traces)),20)
+    all_active_cells = list(epoched_traces)
+    cell_sample = random.sample(all_active_cells,20)
 
     # nCells = 20 #len(epoched_traces)
     # nFreqs = len(epoched_traces[1])
@@ -52,6 +54,7 @@ def plot_trials(epoched_traces):
     # plot_d = dict.fromkeys(range(1,11))
 
     for cell in range(10): 
+
         this_cell_d = get_avg_trace(epoched_traces[cell_sample[cell]])
 
         for trace in this_cell_d:
@@ -95,8 +98,7 @@ def get_active_cells(traces):
 
     for cell in traces:
         if traces[cell]['active'] == True:
-            d[cell] = traces[cell]
-            d[cell].pop('active',None)
+            d[cell] = traces[cell]['traces']
         else:
             d.pop(cell,None)
 
@@ -110,6 +112,7 @@ def main():
     # trace = get_avg_trace(traces[1])
     # print(trace)
     active_cells = get_active_cells(traces)
+    print(len(active_cells))
 
     plot_trials(active_cells)
 

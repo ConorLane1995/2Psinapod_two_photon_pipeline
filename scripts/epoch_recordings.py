@@ -1,9 +1,16 @@
+"""
+Script to take the files produced from the Suite2P preprocessing software and epoch the recording into trials.
+INPUT: stim triggers in csv, Suite2P files (F.npy, Fneu.npy, iscell.npy)
+OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
+AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
+"""
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-
+## add another column to the output to store the ROI_ID of the cell
 ### SET VARIABLES FOR NOW - EVENTUALLY TAKE IT FROM THE CONFIG FILE OR A CSV WITH ALL RECORDINGS ###
 stim_fr = 100
 flu_fr = 10
@@ -95,9 +102,10 @@ def epoch_traces(fl,onset_frames):
 
 def plot_trace(fl,onsets):
     for i in range(len(fl)):
-        plt.plot(fl[i,:])
+        plt.plot(fl[i,:]) #,label=i)
 
-    plt.vlines(onsets,0,200)
+    plt.legend(loc="upper left")
+    plt.vlines(onsets,0,300)
     plt.show()
 
 
@@ -147,7 +155,7 @@ def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
 
 def main():
 
-
+    # load our files
     stim = np.genfromtxt(BASE_PATH + csv_path,delimiter=',',skip_header=True)
     fl = np.load(BASE_PATH + "F.npy",allow_pickle=True)
     fneu = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True)
@@ -161,10 +169,14 @@ def main():
     # get an array of all the stimulus onset times in terms of fluorescence frames
     onset_frames = get_onset_frames(stim)
 
-    fl_corr = fl - 0.7*fneu
+    fl_corrected = fl - 0.7*fneu
 
     # get fluorescence traces for the ROIs that are actually cells
-    fl_cells = fl_corr[np.where(iscell[:,0]==1)[0],:]
+    fl_cells = fl_corrected[np.where(iscell[:,0]==1)[0],:]
+
+    active_cells = [2,11,15,16,17,18,21,25,33]
+
+    plot_trace(fl_cells[active_cells],onset_frames)
 
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_traces(fl_cells,onset_frames)
@@ -172,7 +184,7 @@ def main():
     # plot_trials(epoched_traces,8,15)
 
     # save our epoched recording
-    np.save(output_path,epoched_traces)
+    # np.save(output_path,epoched_traces)
 
 if __name__=='__main__':
     main()

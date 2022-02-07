@@ -1,3 +1,11 @@
+"""
+Script to format the epoched recording into a dictionary
+INPUT: epoched_F.npy file with the epoched traces formmatted as nCells x nTrials x nFrames array
+OUTPUT: dictionary with the epoched trial
+AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
+"""
+
+
 import matplotlib as mpl
 import numpy as np
 import pickle
@@ -76,7 +84,7 @@ def format_all_cells(epoched_traces,stim):
     # }
 
     for cell in d:
-        d[cell] = format_trials(epoched_traces[cell-1,:,:],stim)
+        d[cell] = {'traces': format_trials(epoched_traces[cell-1,:,:],stim)}
     
     return d
 
