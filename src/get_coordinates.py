@@ -1,8 +1,8 @@
 import numpy as np
 import pickle
 
-BASE_PATH = "D:/vid127_pseudorandom_stim/"
-cell_dictionary_file = "traces_with_activity_boolean_3.pkl"
+BASE_PATH = "D:/Vid_140/"
+cell_dictionary_file = "cells.pkl"
 
 def main():
     stat = np.load(BASE_PATH+"stat.npy",allow_pickle=True)

@@ -12,11 +12,11 @@ import numpy as np
 import pickle
 from scipy.stats import zscore
 
-BASE_PATH = "D:/vid127_pseudorandom_stim/"
-traces_file = "cell_traces_with_stims.pkl"
-output_file = "traces_with_activity_boolean_2.pkl"
+BASE_PATH = "D:/vid_139/"
+traces_file = "cells.pkl"
+output_file = "cells3.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
-EPOCH_END_IN_MS = 2700 # time after trial onset included in the epoch
+EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
 
 # def check_cell_STD(cell_trace,n_baseline_frames,STD_threshold):
@@ -60,7 +60,7 @@ def check_cell_STD(cell_trace,n_baseline_frames,STD_threshold):
     this_cell_trace = get_avg_trace(cell_trace)
 
     # get the baseline for this trial
-    baseline = this_cell_trace[0:n_baseline_frames-1]
+    baseline = this_cell_trace[0:n_baseline_frames]
     response = this_cell_trace[n_baseline_frames:]
 
     # get our threshold
@@ -146,10 +146,11 @@ def main():
     with open(BASE_PATH + traces_file, 'rb') as f:
         cell_dictionary = pickle.load(f)
 
+    print(len(cell_dictionary))
     # define some key variables we'll pass into our functions
     late_peak = 1.5 - (EPOCH_START_IN_MS/1000) * FRAMERATE # any peaks more than 1.5 seconds after onset will be considered late
-    n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE) # these are the frames we'll use as the baseline
-    STD_threshold = 2 # number of standard deviations from baseline
+    n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE) * -1 # these are the frames we'll use as the baseline
+    STD_threshold = 5 # number of standard deviations from baseline
 
 
     traces_with_active_boolean = check_all_cells(cell_dictionary,n_baseline_frames,STD_threshold)
@@ -159,7 +160,6 @@ def main():
     for cell in traces_with_active_boolean:
         if traces_with_active_boolean[cell]['active'] == True:
             counter += 1
-            print(cell)
 
     print("Number of active cells: ")
     print(counter)
@@ -167,8 +167,8 @@ def main():
 
     # print(len(get_avg_trace(traces[1])))
     # print(len(traces[1][1000][60][1]))
-    # with open(BASE_PATH+output_file,'wb') as f:
-    #     pickle.dump(traces_with_active_boolean,f)
+    with open(BASE_PATH+output_file,'wb') as f:
+        pickle.dump(traces_with_active_boolean,f)
 
 if __name__=='__main__':
     main()

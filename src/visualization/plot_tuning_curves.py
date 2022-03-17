@@ -5,10 +5,10 @@ import pickle
 import random
 from plot_psth import get_active_cells
 
-BASE_PATH = "D:/vid127_pseudorandom_stim/"
-cell_dictionary_file = "traces_with_activity_boolean_3.pkl"
+BASE_PATH = "D:/Vid_139/"
+cell_dictionary_file = "cells.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
-EPOCH_END_IN_MS = 2700 # time after trial onset included in the epoch
+EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
 
 def get_best_frequency(cell):

@@ -8,9 +8,11 @@ AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from itertools import compress
+import scipy.io as scio
 import numpy as np
 import random
 import pickle
+import math
 
 ## add another column to the output to store the ROI_ID of the cell
 ### SET VARIABLES FOR NOW - EVENTUALLY TAKE IT FROM THE CONFIG FILE OR A CSV WITH ALL RECORDINGS ###
@@ -18,12 +20,13 @@ STIMULUS_FRAMERATE = 100
 TRIGGER_DELAY_IN_MS = 50 # delay between TDT sending a trigger and the stimulus actually happening
 RECORDING_FRAMERATE = 10
 epoch_start_in_ms = -500 # in ms
-epoch_end_in_ms = 3000 # in ms
+epoch_end_in_ms = 2500 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-BASE_PATH = "D:/vid127_pseudorandom_stim/"
-csv_path = "TSeries-01202022-1406-127_Cycle00001_VoltageRecording_001.csv"
-output_path = "dictionary_of_cells_2.pkl"
+BASE_PATH = "D:/vid_139/"
+csv_path = "TSeries-02102022-1441-139_Cycle00001_VoltageRecording_001.csv"
+conditions_path = "stim_data_139.mat"
+output_path = "cells.pkl"
 
 
 def are_valid_files(stimulus,fluorescence):
@@ -103,7 +106,8 @@ def epoch_trace(fl,onset_frames):
             trial_ending_frame = int(onset_frames[trial_idx] + (epoch_end_in_ms/1000*RECORDING_FRAMERATE))
 
             # grab this range of frames from the fl trace and store it in the epoched matrix
-            epoched_traces[roi_idx,trial_idx,:] = fl[roi_idx,trial_starting_frame:trial_ending_frame]
+            trace = fl[roi_idx,trial_starting_frame:trial_ending_frame]
+            epoched_traces[roi_idx,trial_idx,:] = trace[:30]
 
     return epoched_traces
 
@@ -244,6 +248,8 @@ def main():
     # load our files
     stimulus = np.genfromtxt(BASE_PATH + csv_path,delimiter=',',skip_header=True)
     # conditions = np.load(BASE_PATH+"Stim_Data_PseudoRandom_vid127.npy",allow_pickle=True)
+    conditions_mat = scio.loadmat(BASE_PATH + conditions_path)
+    conditions = conditions_mat["stim_data"]
     fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True)
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True)
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True)
@@ -257,6 +263,7 @@ def main():
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
     stimulus_onset_frames = stimulus_onset_frames[:-1] # remove the last element
+    # print(stimulus_onset_frames)
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
@@ -264,26 +271,26 @@ def main():
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]
 
-    active_cells = range(21,41)
+    # active_cells = range(21,41)
 
-    print(stimulus_onset_frames)
+    # print(stimulus_onset_frames)
 
     # plot_trace(fluo_in_cells[active_cells],stimulus_onset_frames)
 
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_trace(fluo_in_cells,stimulus_onset_frames)
-    np.save(BASE_PATH+"epoched_traces.npy",fluo_in_cells)
-    np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames)
+    # np.save(BASE_PATH+"epoched_traces.npy",fluo_in_cells)
+    # np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames)
 
-    # dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
+    dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
 
     # plot_trials(epoched_traces,8,15)
 
     # print(dictionary_of_cells)
 
     # save to the provided output path
-    # with open(BASE_PATH+output_path,'wb') as f:
-    #     pickle.dump(dictionary_of_cells,f)
+    with open(BASE_PATH+output_path,'wb') as f:
+        pickle.dump(dictionary_of_cells,f)
 
 if __name__=='__main__':
     main()

@@ -5,8 +5,8 @@ import sys
 sys.path.append("../")
 from utils import get_active_cells, get_entire_trace
 
-BASE_PATH = "D:/vid127_pseudorandom_stim/"
-cell_dictionary = "traces_with_activity_boolean_3.pkl"
+BASE_PATH = "D:/vid_140/"
+cell_dictionary = "cells.pkl"
 coeffs_file = "corrcoefs.pkl"
 
 def format_for_corrcoef(cell_dict):
