@@ -19,8 +19,10 @@ import math
 STIMULUS_FRAMERATE = 100
 TRIGGER_DELAY_IN_MS = 50 # delay between TDT sending a trigger and the stimulus actually happening
 RECORDING_FRAMERATE = 10
-epoch_start_in_ms = -500 # in ms
-epoch_end_in_ms = 2500 # in ms
+EPOCH_START_IN_MS = -500
+EPOCH_END_IN_MS = 2500
+# epoch_start_in_ms = -500 # in ms
+# epoch_end_in_ms = 2500 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
 BASE_PATH = "D:/vid_139/"
@@ -47,8 +49,9 @@ def are_valid_files(stimulus,fluorescence):
 
 def get_onset_frames(stimulus):
     # find the times when the stimulus occured, and convert it to frames at the recording's frame rate
+    # INPUT: stimulus - 1D vector of voltage trace of the stimulus triggers (STIMULUS_FRAMERATE frames per second)
 
-    # get our max voltage value so we know what the trigger looks like
+    # find the max voltage (this will be the value in the vector when the trigger was sent)
     max_voltage = max(stimulus, key=lambda x:x[1])
     max_voltage = max_voltage[1]
 
@@ -76,22 +79,23 @@ def get_onset_frames(stimulus):
     # get the onset times in terms of frames of our fluorescence trace
     onset_frames_at_recording_fr = np.multiply(onset_times,RECORDING_FRAMERATE) # s * f/s = f
 
-    return onset_frames_at_recording_fr
+    return onset_frames_at_recording_fr # a list of stimulus onsets in units of frames at recording framerate
 
 def epoch_trace(fl,onset_frames):
     # fl is nCells x nFrames
-    # frames is nOnsetTimes x 1
+    # onset_frames is nOnsetTimes x 1
 
     # we will return an nCells x nTrials x nFrames array
 
-    # first we'll find the number of frames that should be in each trial
-    trial_length_in_ms = epoch_end_in_ms - epoch_start_in_ms # this gives us length in ms
+    # first we'll find how many seconds are in each trial (based on the chosen epoch start and end)
+    trial_length_in_ms = EPOCH_END_IN_MS - EPOCH_START_IN_MS # this gives us length in ms
     trial_length_in_sec = trial_length_in_ms/1000 # now we have it in seconds
 
     # converting to frames (at the frame rate of the 2P recording)
     trial_length_in_frames = int(trial_length_in_sec * RECORDING_FRAMERATE) # s * f/s = f
 
-    # now we intitialize an array to store what we'll ultimately return
+    # intitialize an array to store what we'll ultimately return
+    # nCells x nTrials x nFramesPerTrials
     epoched_traces = np.zeros((len(fl),len(onset_frames),trial_length_in_frames))
 
     # start filling up this empty matrix
@@ -102,21 +106,21 @@ def epoch_trace(fl,onset_frames):
         for trial_idx in range(len(onset_frames)):
 
             # get the trial starting frame and ending frame
-            trial_starting_frame = int(onset_frames[trial_idx] + (epoch_start_in_ms/1000*RECORDING_FRAMERATE))
-            trial_ending_frame = int(onset_frames[trial_idx] + (epoch_end_in_ms/1000*RECORDING_FRAMERATE))
+            trial_starting_frame = int(onset_frames[trial_idx] + (EPOCH_START_IN_MS/1000*RECORDING_FRAMERATE))
+            trial_ending_frame = int(onset_frames[trial_idx] + (EPOCH_END_IN_MS/1000*RECORDING_FRAMERATE))
 
             # grab this range of frames from the fl trace and store it in the epoched matrix
             trace = fl[roi_idx,trial_starting_frame:trial_ending_frame]
-            epoched_traces[roi_idx,trial_idx,:] = trace[:30]
+            epoched_traces[roi_idx,trial_idx,:] = trace #[:30]
 
     return epoched_traces
 
 def format_trials(traces,stim):
 
-    # traces should be an nTrial x nFrame array
+    # traces should be an nTrial x nFrame array of the dF/F over each trial
     # stim should be an nTrial x 4 array (info on this structure in the README.md)
 
-    # need this to return a dictionary that will be contained within this cell key in the big dictionary
+    # this will return a dictionary that will be contained within this cell key in the big dictionary
 
     # format the dictionary so we get this structure:
     # cell_ID{
@@ -134,22 +138,22 @@ def format_trials(traces,stim):
     # use the frequencies we played as the keys of our dictionary (outermost dictionary)
     freq_dict = dict.fromkeys(np.unique(stim[:,0]))
 
-    # nest our intensities inside our freq dictionary
+    # nest each intensity the frequencies were presented at inside our freq dictionary
     for freq in freq_dict:
         freq_dict[freq] = dict.fromkeys(np.unique(stim[:,1]))
 
     # make empty dictionaries so we can index properly later
     for freq in freq_dict:
-        # print(type(freq))
         for intensity in freq_dict[freq]:
             freq_dict[freq][intensity] = {}
 
-    # make a really shitty temporary map so we can keep track of how many repetitions of this trial we've seen
+    # make a temporary map so we can keep track of how many repetitions of this trial we've seen
     # just going to add together the frequency and intensity to index it
     # biggest element we'll need is max(frequency) + max(intensity)
     max_element = max(stim[:,0]) + max(stim[:,1]) + 10
     temp_map = [0] * max_element
 
+    # for each trial
     for trial in range(len(stim)):
 
         # trial's frequency
@@ -159,6 +163,7 @@ def format_trials(traces,stim):
         i = stim[trial,1]
 
         # access the map to see how many repetitions of the frequency and intensity we've already seen
+        # this way we don't overwrite a trial with the same stimulus type
         num_rep = temp_map[f+i]+1
         temp_map[f+i] += 1
 
@@ -168,8 +173,12 @@ def format_trials(traces,stim):
     return freq_dict
 
 def format_all_cells(epoched_traces,stimulus,iscell_logical):
+    # epoched traces is an nCells x nTrials x nFramesPerTrial array
+    # stim should be an nTrial x 4 array (info on this structure in the README.md)
+    # iscell_logical is an nCells x 1 array of whether or not each ROI is a cell
 
     # make a dictionary where each cell is one key
+
     # enumerate all the ROI IDs
     ROI_IDs = range(1,len(iscell_logical)+1)
     # grab all the ROIs that are cells
@@ -181,7 +190,8 @@ def format_all_cells(epoched_traces,stimulus,iscell_logical):
     # cell_n{ 
     #     freq_f{
     #           intensity_i{
-    #                   trace = [x,x,x,x,...]
+    #                     repetition{
+    #                           trace = [x,x,x,x,...]
     #                       }
     #            }
     # }
@@ -230,7 +240,7 @@ def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
         # add a line to show exactly where stimulus happened
         # epoching started 100 ms before the trigger
         # so have an extra 0.1s * RECORDING_FRAMERATE frames before the trigger
-        axs[trial].vlines(epoch_start_in_ms/-1000*RECORDING_FRAMERATE,0,100)
+        axs[trial].vlines(EPOCH_START_IN_MS/-1000*RECORDING_FRAMERATE,0,100)
 
         # set the limits on the axes
         axs[trial].set_ylim([0,100])
@@ -245,7 +255,7 @@ def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
 
 def main():
 
-    # load our files
+    # load our files that were generated by Suite2P and the stim files
     stimulus = np.genfromtxt(BASE_PATH + csv_path,delimiter=',',skip_header=True)
     # conditions = np.load(BASE_PATH+"Stim_Data_PseudoRandom_vid127.npy",allow_pickle=True)
     conditions_mat = scio.loadmat(BASE_PATH + conditions_path)
@@ -263,7 +273,6 @@ def main():
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
     stimulus_onset_frames = stimulus_onset_frames[:-1] # remove the last element
-    # print(stimulus_onset_frames)
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
@@ -271,22 +280,18 @@ def main():
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]
 
-    # active_cells = range(21,41)
-
-    # print(stimulus_onset_frames)
-
     # plot_trace(fluo_in_cells[active_cells],stimulus_onset_frames)
 
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_trace(fluo_in_cells,stimulus_onset_frames)
+
+
     # np.save(BASE_PATH+"epoched_traces.npy",fluo_in_cells)
     # np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames)
 
     dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
 
     # plot_trials(epoched_traces,8,15)
-
-    # print(dictionary_of_cells)
 
     # save to the provided output path
     with open(BASE_PATH+output_path,'wb') as f:
