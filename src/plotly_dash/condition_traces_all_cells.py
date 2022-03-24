@@ -36,21 +36,30 @@ app.layout = html.Div(
         html.Div(id="output", children=[]),
         html.Br(),
 
-        dcc.Graph(id='my_graph', figure={})
+        html.Div(children=[ 
+            dcc.Graph(id='traces', figure={}),
+        ],
+            style={'display': 'inline-block', 'vertical-align': 'top', 'margin-left': '3vw', 'margin-top': '3vw'}),
+        html.Div(children=[
+            dcc.Graph(id='tuning', figure={})
+        ],
+            style={'display': 'inline-block', 'vertical-align': 'top', 'margin-left': '3vw', 'margin-top': '3vw'})
+        
     ]
 )
 
 # Connect with Dash components
 @app.callback(
     [Output(component_id="output",component_property="children"),
-    Output(component_id="my_graph", component_property="figure")],
+    Output(component_id="traces", component_property="figure"),
+    Output(component_id="tuning",component_property="figure")],
     [Input(component_id="cell_slct",component_property="value")],
 )
 
 def update_graph(cell_slct):
     container =  "The cell selected was: {}".format(keys_as_list[cell_slct-1])
 
-    fig = make_subplots(rows=6, cols=9,horizontal_spacing=0,vertical_spacing=0)
+    fig = make_subplots(rows=6, cols=9,horizontal_spacing=0.01,vertical_spacing=0.03)
 
     this_cell_ID = keys_as_list[cell_slct-1]
     this_cell_trace = cells[this_cell_ID]['traces']
@@ -66,7 +75,7 @@ def update_graph(cell_slct):
             for repetition in this_cell_trace[freq][intensity]:
 
                 trace = this_cell_trace[freq][intensity][repetition]
-                trace = trace[5:]
+                # trace = trace[5:]
                 
                 fig.append_trace(go.Scatter(
                     x=list(range(len(trace))),
@@ -78,22 +87,22 @@ def update_graph(cell_slct):
 
                 rep_counter +=1
 
-                # fig.update_layout(yaxis={'visible': False, 'showticklabels': False},row=row_counter,col=coln_counter)
-                # fig.update_layout(xaxis={'visible': False, 'showticklabels': False},row=row_counter,col=coln_counter)
-                fig.update_yaxes(range=[0,1100],showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
-                fig.update_xaxes(showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
+            fig.update_yaxes(range=[0,1100],showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
+            fig.update_xaxes(showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
 
             row_counter += 1
 
         coln_counter += 1
 
-    # fig.add_trace(go.Scatter(x=frames,y=this_cell_avg_trace, name="Average trace"))
-    # fig.add_vline(x=5)
-    # fig.update_layout(title="Averaged cell activity",xaxis_title="Frame", yaxis_title="dF/F")
+    fig.update_layout(height=600,width=900,showlegend=False) #,xaxis=dict(showgrid=False),yaxis=dict(showgrid=False))
+    fig.add_vline(x=5,line_width=2,line_color="black",row='all',col='all')
 
-    fig.update_layout(height=800,width=1600,showlegend=False) #,xaxis=dict(showgrid=False),yaxis=dict(showgrid=False))
+    this_cell_tuning = cells[this_cell_ID]['tuning_curve']
+    f = px.imshow(np.transpose(this_cell_tuning),origin='lower')
+    f.update_xaxes(tickmode='array',tickvals=[0,2,4,6,8],ticktext=[2,4.5,10,23,52])
+    f.update_yaxes(tickmode='array',tickvals=[0,2,4],ticktext=[30,50,70])
 
-    return container,fig
+    return container,fig,f
 
 if __name__=="__main__":
     app.run_server(debug=True)
