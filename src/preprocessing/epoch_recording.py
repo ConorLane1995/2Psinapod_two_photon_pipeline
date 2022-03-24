@@ -25,9 +25,9 @@ EPOCH_END_IN_MS = 2500
 # epoch_end_in_ms = 2500 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-BASE_PATH = "D:/vid_139/"
-csv_path = "TSeries-02102022-1441-139_Cycle00001_VoltageRecording_001.csv"
-conditions_path = "stim_data_139.mat"
+BASE_PATH = "D:/vid_148/"
+csv_path = "TSeries-03232022-1548-148_Cycle00001_VoltageRecording_001.csv"
+conditions_path = "Stim_Data_23032022_148.mat"
 output_path = "cells.pkl"
 
 

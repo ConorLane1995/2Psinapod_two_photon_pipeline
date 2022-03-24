@@ -9,13 +9,13 @@ sys.path.append("../")
 from utils import get_active_cells
 from scipy.stats import zscore
 
-BASE_PATH = "D:/Vid_139/"
-cell_dictionary_file = "cells3.pkl"
-cell_dictionary_file_out = "cells4.pkl"
+BASE_PATH = "D:/Vid_148/"
+cell_dictionary_file = "cells.pkl"
+cell_dictionary_file_out = "cells.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
-CELL_OF_INTEREST = 30
+CELL_OF_INTEREST = 4
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
@@ -47,7 +47,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
         # iterate through each intensity the frequency was presented at
         plot_row_counter = 0
-        for intensity in reversed(cell_traces[freq]):
+        for intensity in cell_traces[freq]:
             # collect all the trials of this one frequency presented at this one intensity
             # it will be an nTrials x nFrames matrix
             all_trials_of_this_intensity = []
@@ -258,8 +258,8 @@ def main():
     active_cell_dictionary = get_active_cells(cell_dictionary)
     cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    # plot_tuning_curves(active_cell_dictionary)
-    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    plot_tuning_curves(active_cell_dictionary)
+    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
     with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
