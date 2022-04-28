@@ -16,8 +16,8 @@ sys
 app = dash.Dash(__name__)
 
 # Import and clean data
-BASE_PATH = "D:/Vid_148_2/"
-cells_file = "cells.pkl"
+BASE_PATH = "D:/Vid_148/"
+cells_file = "cells_smoothed.pkl"
 
 with open(BASE_PATH + cells_file, 'rb') as f:
     cells = pickle.load(f)
@@ -87,7 +87,7 @@ def update_graph(cell_slct):
 
                 rep_counter +=1
 
-            fig.update_yaxes(range=[-150,100],showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
+            fig.update_yaxes(range=[0,800],showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
             fig.update_xaxes(showticklabels=False,row=row_counter,col=coln_counter,showgrid=False)
 
             row_counter += 1
@@ -105,5 +105,5 @@ def update_graph(cell_slct):
     return container,fig,f
 
 if __name__=="__main__":
-    app.run_server(debug=False,host='0.0.0.0',port=8080)
-    # app.run_server(debug=True, port=8080)
+    # app.run_server(debug=False,host='0.0.0.0',port=8080)
+    app.run_server(debug=True, port=8080)

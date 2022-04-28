@@ -25,9 +25,9 @@ EPOCH_END_IN_MS = 2500
 # epoch_end_in_ms = 2500 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-BASE_PATH = "D:/vid_148/"
-csv_path = "TSeries-03232022-1548-148_Cycle00001_VoltageRecording_001.csv"
-conditions_path = "Stim_Data_23032022_148.mat"
+BASE_PATH = "D:/Vid_155/"
+csv_path = "TSeries-04142022-1346-155_Cycle00001_VoltageRecording_001.csv"
+conditions_path = "stim_data_155.mat"
 output_path = "cells.pkl"
 
 
@@ -260,7 +260,7 @@ def main():
     # conditions = np.load(BASE_PATH+"Stim_Data_PseudoRandom_vid127.npy",allow_pickle=True)
     conditions_mat = scio.loadmat(BASE_PATH + conditions_path)
     conditions = conditions_mat["stim_data"]
-    fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True)
+    fluorescence_trace = np.load(BASE_PATH + "spks.npy",allow_pickle=True)
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True)
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True)
 
@@ -275,7 +275,7 @@ def main():
     stimulus_onset_frames = stimulus_onset_frames[:-1] # remove the last element
 
     # account for the neuropil (background fluorescence)
-    corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
+    corrected_fluo = fluorescence_trace #- 0.7*neuropil_trace
 
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]

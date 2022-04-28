@@ -3,3 +3,5 @@
 data/
 
 notebooks/
+
+src/plotly_dash/deploy/
