@@ -12,9 +12,9 @@ import numpy as np
 import pickle
 from scipy.stats import zscore
 
-BASE_PATH = "D:/Vid_155/"
-traces_file = "cells.pkl"
-output_file = "cells.pkl"
+BASE_PATH = "C:/Users/vmtar/Downloads/Vid_157/"
+traces_file = "cells_rmn_dec.pkl"
+output_file = "cells_rmn_dec.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
@@ -150,7 +150,7 @@ def main():
     # define some key variables we'll pass into our functions
     late_peak = 1.5 - (EPOCH_START_IN_MS/1000) * FRAMERATE # any peaks more than 1.5 seconds after onset will be considered late
     n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE) * -1 # these are the frames we'll use as the baseline
-    STD_threshold = 5 # number of standard deviations from baseline
+    STD_threshold = 3 # number of standard deviations from baseline
 
 
     traces_with_active_boolean = check_all_cells(cell_dictionary,n_baseline_frames,STD_threshold)

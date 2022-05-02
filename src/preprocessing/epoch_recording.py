@@ -25,10 +25,10 @@ EPOCH_END_IN_MS = 2500
 # epoch_end_in_ms = 2500 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-BASE_PATH = "D:/Vid_155/"
-csv_path = "TSeries-04142022-1346-155_Cycle00001_VoltageRecording_001.csv"
-conditions_path = "stim_data_155.mat"
-output_path = "cells.pkl"
+BASE_PATH = "C:/Users/vmtar/Downloads/Vid_157/"
+csv_path = "TSeries-04272022-1637-157_Cycle00001_VoltageRecording_001.csv"
+conditions_path = "ID96_LogstimCorrect_27042022_2.mat"
+output_path = "cells_rmn_dec.pkl"
 
 
 def are_valid_files(stimulus,fluorescence):
@@ -179,10 +179,12 @@ def format_all_cells(epoched_traces,stimulus,iscell_logical):
 
     # make a dictionary where each cell is one key
 
-    # enumerate all the ROI IDs
-    ROI_IDs = range(1,len(iscell_logical)+1)
-    # grab all the ROIs that are cells
-    cell_IDs = list(compress(ROI_IDs, iscell_logical[:,0]==1))
+    # find the label for each ROI by finding this indices where iscell_logical is 1
+    ROI_indices = (iscell_logical[:,0] == 1).nonzero()
+    ROI_indices = ROI_indices[0] # extracting the first part of the tuple
+    cell_IDs = ROI_indices + 1 # add 1 so we don't have zero indexing
+
+    # make a dictionary from this list
     dict_of_cells = dict.fromkeys(cell_IDs)
 
     # for each cell
@@ -272,11 +274,11 @@ def main():
     # get an array of all the stimulus onset times 
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
-    stimulus_onset_frames = stimulus_onset_frames[:-1] # remove the last element
+    stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace #- 0.7*neuropil_trace
-
+    
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]
 
