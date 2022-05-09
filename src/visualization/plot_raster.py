@@ -6,12 +6,12 @@ import numpy as np
 STIMULUS_FRAMERATE = 100
 TRIGGER_DELAY_IN_MS = 50 # delay between TDT sending a trigger and the stimulus actually happening
 RECORDING_FRAMERATE = 10
-SPIKE_THRESHOLD = 100
+SPIKE_THRESHOLD = 150
 epoch_start_in_ms = -500 # in ms
 epoch_end_in_ms = 6000 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-BASE_PATH = "D:/vid127_pseudorandom_stim/"
+BASE_PATH = "/Volumes/Office_USB/Vid_157/"
 epoched_traces_file = "epoched_traces.npy"
 
 def get_spike_train(cell_trace):

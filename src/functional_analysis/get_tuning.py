@@ -9,13 +9,13 @@ sys.path.append("../")
 from utils import get_active_cells
 from scipy.stats import zscore
 
-BASE_PATH = "C:/Users/vmtar/Downloads/Vid_157/"
-cell_dictionary_file = "cells_rmn_dec.pkl"
-cell_dictionary_file_out = "cells_rmn_dec.pkl"
+BASE_PATH = "/Volumes/Office_USB/Vid_157/"
+cell_dictionary_file = "cells_2.pkl"
+cell_dictionary_file_out = "cells_2.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
-CELL_OF_INTEREST = 18
+CELL_OF_INTEREST = 1
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
@@ -114,7 +114,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
                 axs[5-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
                 axs[5-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
                 axs[5-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[5-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=50)
+                axs[5-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=350)
                 # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
 
             # zscore_response = zscore(response)
@@ -314,12 +314,12 @@ def plot_tuning_curves(cell_dictionary):
     axs = axs.ravel()
     counter = 0
     for cell in cell_dictionary:
-        if counter<25:
-            counter += 1
-            continue
+        # if counter<25:
+        #     counter += 1
+        #     continue
 
         cell_tuning = cell_dictionary[cell]['tuning_curve']
-        # counter += 25
+        counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
         axs[counter-25].set_xticks([0,2,4,6,8])
@@ -328,8 +328,8 @@ def plot_tuning_curves(cell_dictionary):
         axs[counter-25].set_yticklabels(intensity_labels)
         axs[counter-25].title.set_text(cell)
 
-        # counter -= 25
-        if counter==49:
+        counter -= 25
+        if counter==24:
             break
         counter += 1
 
@@ -386,8 +386,8 @@ def main():
     active_cell_dictionary = get_active_cells(cell_dictionary)
     cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    # plot_tuning_curves(active_cell_dictionary)
-    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    plot_tuning_curves(active_cell_dictionary)
+    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
     with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
