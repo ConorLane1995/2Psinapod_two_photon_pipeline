@@ -25,10 +25,10 @@ EPOCH_END_IN_MS = 2500
 # epoch_end_in_ms = 2500 # in ms
 stim_fl_error_allowed = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
-BASE_PATH = "C:/Users/vmtar/Downloads/Vid_157/"
+BASE_PATH = "/Volumes/Office_USB/Vid_157/"
 csv_path = "TSeries-04272022-1637-157_Cycle00001_VoltageRecording_001.csv"
-conditions_path = "ID96_LogstimCorrect_27042022_2.mat"
-output_path = "cells_rmn_dec.pkl"
+conditions_path = "Stim_Data_157_Corrected.mat"
+output_path = "cells_2.pkl"
 
 
 def are_valid_files(stimulus,fluorescence):
@@ -199,7 +199,7 @@ def format_all_cells(epoched_traces,stimulus,iscell_logical):
     # }
 
     for cell_idx in range(len(cell_IDs)):
-        dict_of_cells[cell_IDs[cell_idx]] = {'traces': format_trials(epoched_traces[cell_idx-1,:,:],stimulus)}
+        dict_of_cells[cell_IDs[cell_idx]] = {'traces': format_trials(epoched_traces[cell_idx,:,:],stimulus)}
     
     return dict_of_cells
 
@@ -262,7 +262,7 @@ def main():
     # conditions = np.load(BASE_PATH+"Stim_Data_PseudoRandom_vid127.npy",allow_pickle=True)
     conditions_mat = scio.loadmat(BASE_PATH + conditions_path)
     conditions = conditions_mat["stim_data"]
-    fluorescence_trace = np.load(BASE_PATH + "spks.npy",allow_pickle=True)
+    fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True)
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True)
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True)
 
@@ -274,10 +274,12 @@ def main():
     # get an array of all the stimulus onset times 
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
-    stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
+    # plt.scatter(range(len(stimulus_onset_frames)),stimulus_onset_frames)
+    # plt.show()
+    # stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
 
     # account for the neuropil (background fluorescence)
-    corrected_fluo = fluorescence_trace #- 0.7*neuropil_trace
+    corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
     
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]
@@ -288,10 +290,13 @@ def main():
     epoched_traces = epoch_trace(fluo_in_cells,stimulus_onset_frames)
 
 
-    # np.save(BASE_PATH+"epoched_traces.npy",fluo_in_cells)
-    # np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames)
+    np.save(BASE_PATH+"epoched_traces.npy",fluo_in_cells)
+    np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames)
 
     dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
+
+    for cell in dictionary_of_cells:
+        print(cell)
 
     # plot_trials(epoched_traces,8,15)
 
