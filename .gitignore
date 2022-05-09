@@ -5,3 +5,5 @@ data/
 notebooks/
 
 src/plotly_dash/deploy/
+
+config.json

@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 from scipy.stats import zscore
+import json
 
-BASE_PATH = "/Volumes/Office_USB/Vid_163/"
-traces_file = "cells2.pkl"
-output_file = "cells2.pkl"
+# BASE_PATH = "/Volumes/Office_USB/Vid_163/"
+# traces_file = "cells2.pkl"
+# output_file = "cells2.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
@@ -139,6 +140,14 @@ def check_all_cells(cell_dictionary,n_baseline_frames,threshold):
     return cell_dictionary
 
 def main():
+
+    # load what we need from the config file
+    with open('../../config.json','r') as f:
+        config = json.load(f)
+
+    BASE_PATH = config['RecordingFolder']
+    traces_file = config['AnalysisFile']
+    output_file = traces_file
     
     # import our epoched and formatted recordings
     # again, it's formatted like this: 

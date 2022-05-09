@@ -5,13 +5,14 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pickle
 import sys
+import json
 sys.path.append("../")
 from utils import get_active_cells
 from scipy.stats import zscore
 
-BASE_PATH = "/Volumes/Office_USB/Vid_163/"
-cell_dictionary_file = "cells2.pkl"
-cell_dictionary_file_out = "cells2.pkl"
+# BASE_PATH = "/Volumes/Office_USB/Vid_163/"
+# cell_dictionary_file = "cells2.pkl"
+# cell_dictionary_file_out = "cells2.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
@@ -379,6 +380,13 @@ def get_tuning_curves(cell_dictionary):
 
 
 def main():
+    # load what we need from the config file
+    with open('../../config.json','r') as f:
+        config = json.load(f)
+
+    BASE_PATH = config['RecordingFolder']
+    cell_dictionary_file = config['AnalysisFile']
+    cell_dictionary_file_out = cell_dictionary_file
 
     with open(BASE_PATH + cell_dictionary_file, 'rb') as f:
         cell_dictionary = pickle.load(f)
