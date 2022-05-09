@@ -12,9 +12,9 @@ import numpy as np
 import pickle
 from scipy.stats import zscore
 
-BASE_PATH = "/Volumes/Office_USB/Vid_157/"
-traces_file = "cells_2.pkl"
-output_file = "cells_2.pkl"
+BASE_PATH = "/Volumes/Office_USB/Vid_163/"
+traces_file = "cells2.pkl"
+output_file = "cells2.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10

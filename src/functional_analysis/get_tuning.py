@@ -9,9 +9,9 @@ sys.path.append("../")
 from utils import get_active_cells
 from scipy.stats import zscore
 
-BASE_PATH = "/Volumes/Office_USB/Vid_157/"
-cell_dictionary_file = "cells_2.pkl"
-cell_dictionary_file_out = "cells_2.pkl"
+BASE_PATH = "/Volumes/Office_USB/Vid_163/"
+cell_dictionary_file = "cells2.pkl"
+cell_dictionary_file_out = "cells2.pkl"
 EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
 EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
 FRAMERATE = 10
