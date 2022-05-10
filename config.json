@@ -1,1 +1,12 @@
-{"RepoDir": "/Users/veronica/2Psinapod", "RecordingFolder": "/Volumes/Office_USB/Vid_163/", "Triggers": "TSeries-05062022-1428-163_Cycle00001_VoltageRecording_001.csv", "Conditions": "ID96_LogstimCorrect_06052022_2.mat", "AnalysisFile": "cells.pkl"}
+{
+  "RepoDir": "/Users/veronica/2Psinapod/",
+  "RecordingFolder": "/Volumes/Office_USB/Vid_163/",
+  "Triggers": "TSeries-05062022-1428-163_Cycle00001_VoltageRecording_001.csv",
+  "TriggerFR": 100,
+  "Conditions": "ID96_LogstimCorrect_06052022_2.mat",
+  "RecordingFR": 10,
+  "AnalysisFile": "cells.pkl",
+  "EpochStart": -500,
+  "EpochEnd": 2500,
+  "TriggerDelay": 50
+}

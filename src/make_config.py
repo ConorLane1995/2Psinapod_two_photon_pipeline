@@ -26,7 +26,7 @@ def main():
             print("Directory provided is invalid")
             sys.exit()
     else:
-        wd_input = input("Enter the path to the 2Psinapod folder (enter=default): ") or "/Users/veronica/2Psinapod"
+        wd_input = input("Enter the path to the 2Psinapod folder (enter=default): ") or "/Users/veronica/2Psinapod/"
         print(wd_input)
 
         if osp.isdir(wd_input):
@@ -58,15 +58,32 @@ def main():
     # get the name of the trigger file
     config_dict['Triggers'] = input("Name of CSV with triggers: ")
 
+    # get the frame rate of the trigger file
+    config_dict['TriggerFR'] = int(input("Framerate of the trigger file (enter=100Hz)") or 100)
+
     # get the name of the conditions file
     config_dict['Conditions'] = input("Name of the CSV with condition labels: ")
+
+    # get the framerate of the recording itself
+    config_dict['RecordingFR'] = int(input("Framerate of the recording (enter=10Hz): ") or 10)
 
     # get the name of the file to store all the analysis in
     config_dict['AnalysisFile'] = input("Name of file to store analysis in (enter=default): ") or "cells.pkl"
 
+    # get the pre-stimulus time to be included in the trial
+    config_dict['EpochStart'] = int(input("Time before the stimulus to include in the epoch (enter=500ms): ") or 500)
+    config_dict['EpochStart'] = config_dict['EpochStart'] * -1
+
+    # get the post-stimulus time to be included in the trial
+    config_dict['EpochEnd'] = int(input("Time after the stimulus to include in the epoch (enter=2500ms): ") or 2500)
+
+    config_dict['TriggerDelay'] = 50
+
     # write this to the config file
     with open(full_config_path,'w') as f:
-        json.dump(config_dict,f)
+        json.dump(config_dict,f,indent=2)
+
+
     
 
 if __name__=='__main__':
