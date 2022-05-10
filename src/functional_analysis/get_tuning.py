@@ -10,12 +10,17 @@ sys.path.append("../")
 from utils import get_active_cells
 from scipy.stats import zscore
 
-# BASE_PATH = "/Volumes/Office_USB/Vid_163/"
-# cell_dictionary_file = "cells2.pkl"
-# cell_dictionary_file_out = "cells2.pkl"
-EPOCH_START_IN_MS = -500 # time before trial onset included in the epoch
-EPOCH_END_IN_MS = 2500 # time after trial onset included in the epoch
-FRAMERATE = 10
+# load what we need from the config file
+with open('/Users/veronica/2Psinapod/config.json','r') as f:
+    config = json.load(f)
+
+BASE_PATH = config['RecordingFolder']
+cell_dictionary_file = config['AnalysisFile']
+cell_dictionary_file_out = cell_dictionary_file
+EPOCH_START_IN_MS = config['EpochStart']
+EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
+FRAMERATE = config['RecordingFR']
+
 CELL_OF_INTEREST = 1
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
@@ -380,13 +385,6 @@ def get_tuning_curves(cell_dictionary):
 
 
 def main():
-    # load what we need from the config file
-    with open('../../config.json','r') as f:
-        config = json.load(f)
-
-    BASE_PATH = config['RecordingFolder']
-    cell_dictionary_file = config['AnalysisFile']
-    cell_dictionary_file_out = cell_dictionary_file
 
     with open(BASE_PATH + cell_dictionary_file, 'rb') as f:
         cell_dictionary = pickle.load(f)
