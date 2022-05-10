@@ -44,3 +44,30 @@ def get_entire_trace(cell):
     et = np.array(entire_trace)
     et = np.reshape(et,-1)
     return et
+
+
+def get_avg_trace(cell_trace):
+    # cell_trace is going to be all the trials of this one cell
+    # {freq: intensity: repetition: trace = [x,x,x,x,...]}}}
+
+    # first we need to find how much space to allocate
+    n_samples = 0
+    n_trials = 0
+    for freq in cell_trace:
+        for intensity in cell_trace[freq]:
+            for repetition in cell_trace[freq][intensity]:
+                if n_trials == 0:
+                    n_samples = len(cell_trace[freq][intensity][repetition])
+                n_trials += 1
+              
+    summed_traces = np.zeros(shape=(n_trials,n_samples))
+
+    counter = 0
+    # let's get a sum of all our traces to average later
+    for freq in cell_trace:
+        for intensity in cell_trace[freq]:
+            for repetition in cell_trace[freq][intensity]:
+                summed_traces[counter,:] = cell_trace[freq][intensity][repetition]
+                counter += 1
+
+    return np.average(summed_traces,axis=0)
