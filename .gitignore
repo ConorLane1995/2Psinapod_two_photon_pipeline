@@ -6,4 +6,4 @@ notebooks/
 
 src/plotly_dash/deploy/
 
-config.json
+src/config.json
