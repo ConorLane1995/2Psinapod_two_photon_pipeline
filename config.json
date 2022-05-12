@@ -1,7 +1,7 @@
 {
   "RepoDir": "/Users/veronica/2Psinapod/",
-  "RecordingFolder": "/Volumes/Office_USB/Vid_167/",
-  "Triggers": "TSeries-05092022-1441-167_Cycle00001_VoltageRecording_001.csv",
+  "RecordingFolder": "/Volumes/Office_USB/Vid_170/",
+  "Triggers": "TSeries-05092022-1441-170_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,
   "Conditions": "stim_data.mat",
   "RecordingFR": 10,

@@ -23,12 +23,12 @@ def get_first_trial(cell_dictionary):
     # load the conditions file
     conditions_mat = scio.loadmat(BASE_PATH + conditions_path) # conditition type of each trial in chronological order (row 1 = trial 1)
     conditions = conditions_mat["stim_data"]
-    f = conditions[269,0]
-    i = conditions[269,1]
+    f = conditions[0,0]
+    i = conditions[0,1]
     cell = list(cell_dictionary.keys())[0]
     
     # get this trial
-    return cell_dictionary[cell]['traces'][f][i][5]
+    return cell_dictionary[cell]['traces'][f][i][1]
 
 def get_original_trial(fluo,onsets):
     # get the first trial for the first cell in this big fluorescence trace
@@ -37,8 +37,8 @@ def get_original_trial(fluo,onsets):
     onsets = np.round(onsets)
 
     # find the first frame in this epoch
-    first_frame = int(onsets[-2] + EPOCH_START_IN_MS/1000*RECORDING_FRAMERATE)
-    last_frame = int(onsets[-2] + EPOCH_END_IN_MS/1000*RECORDING_FRAMERATE)
+    first_frame = int(onsets[0] + EPOCH_START_IN_MS/1000*RECORDING_FRAMERATE)
+    last_frame = int(onsets[0] + EPOCH_END_IN_MS/1000*RECORDING_FRAMERATE)
 
     return cell1_f[int(first_frame):int(last_frame)]
 

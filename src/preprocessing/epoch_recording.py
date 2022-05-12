@@ -233,8 +233,8 @@ def main():
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
 
-    stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
-    conditions = conditions[1:] # remove first trial label
+    # stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
+    # conditions = conditions[1:] # remove first trial label
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace - 0.7*neuropil_trace

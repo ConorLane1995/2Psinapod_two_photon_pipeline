@@ -21,7 +21,7 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 9
+CELL_OF_INTEREST = 4
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
@@ -391,7 +391,7 @@ def main():
     active_cell_dictionary = get_active_cells(cell_dictionary)
     cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    # plot_tuning_curves(active_cell_dictionary)
+    plot_tuning_curves(active_cell_dictionary)
     # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
