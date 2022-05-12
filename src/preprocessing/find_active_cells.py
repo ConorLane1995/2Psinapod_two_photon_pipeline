@@ -13,7 +13,7 @@ import pickle
 from scipy.stats import zscore
 import json
 import sys
-sys.path.append("../")
+sys.path.append("/Users/veronica/2Psinapod/src/")
 from utils import get_avg_trace
 
 # load what we need from the config file

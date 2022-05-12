@@ -21,12 +21,12 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 1
+CELL_OF_INTEREST = 9
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
     if plot_TF:
-        fig,axs = plt.subplots(6,9)
+        fig,axs = plt.subplots(3,3)
         # axs = axs.ravel()
 
     # cell_traces is a dictionary of frequencies 
@@ -97,7 +97,6 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
             # response = average_trial_of_this_intensity[n_baseline_frames:]
             # zscore_response = np.array([zscorer(xi) for xi in response])
-
             response = average_trial_of_this_intensity[n_baseline_frames:]
 
             if plot_TF:
@@ -113,14 +112,14 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             if plot_TF:
                 # print(len(error))
                 # print(len(response))
-                axs[5-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[5-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
+                axs[2-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
+                axs[2-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
                 # axs[plot_row_counter,plot_coln_counter].plot(response)
                 # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[5-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[5-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[5-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[5-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=350)
+                axs[2-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
+                axs[2-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
+                axs[2-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
+                axs[2-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
                 # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
 
             # zscore_response = zscore(response)
@@ -328,10 +327,10 @@ def plot_tuning_curves(cell_dictionary):
         counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
-        axs[counter-25].set_xticks([0,2,4,6,8])
-        axs[counter-25].set_xticklabels(frequency_labels)
-        axs[counter-25].set_yticks([0,2,4])
-        axs[counter-25].set_yticklabels(intensity_labels)
+        # axs[counter-25].set_xticks([0,2,4,6,8])
+        # axs[counter-25].set_xticklabels(frequency_labels)
+        # axs[counter-25].set_yticks([0,2,4])
+        # axs[counter-25].set_yticklabels(intensity_labels)
         axs[counter-25].title.set_text(cell)
 
         counter -= 25
@@ -392,7 +391,7 @@ def main():
     active_cell_dictionary = get_active_cells(cell_dictionary)
     cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    plot_tuning_curves(active_cell_dictionary)
+    # plot_tuning_curves(active_cell_dictionary)
     # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 

@@ -112,8 +112,8 @@ def epoch_trace(fl,onset_frames):
             trial_ending_frame = np.round(onset_frames[trial_idx] + (EPOCH_END_IN_MS/1000*RECORDING_FRAMERATE))
 
             # grab this range of frames from the fl trace and store it in the epoched matrix
-            trace = fl[roi_idx,trial_starting_frame:trial_ending_frame]
-            epoched_traces[roi_idx,trial_idx,:] = trace
+            trace = fl[roi_idx,int(trial_starting_frame):int(trial_ending_frame)]
+            epoched_traces[roi_idx,trial_idx,:] = trace[:30]
 
     return epoched_traces
 
@@ -233,7 +233,8 @@ def main():
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
 
-    # stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
+    stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
+    conditions = conditions[1:] # remove first trial label
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
