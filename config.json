@@ -1,11 +1,11 @@
 {
   "RepoDir": "/Users/veronica/2Psinapod/",
-  "RecordingFolder": "/Volumes/Office_USB/Vid_170/",
-  "Triggers": "TSeries-05092022-1441-170_Cycle00001_VoltageRecording_001.csv",
+  "RecordingFolder": "/Users/veronica/Downloads/Vid_176/",
+  "Triggers": "TSeries-05112022-1517-176_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,
-  "Conditions": "stim_data.mat",
+  "Conditions": "ID112_FreqSilence_11052022_1.mat",
   "RecordingFR": 10,
-  "AnalysisFile": "cells_shifted.pkl",
+  "AnalysisFile": "cells.pkl",
   "EpochStart": -500,
   "EpochEnd": 2500,
   "TriggerDelay": 50

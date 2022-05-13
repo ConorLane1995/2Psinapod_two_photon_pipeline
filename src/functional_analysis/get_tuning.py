@@ -21,12 +21,12 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 4
+CELL_OF_INTEREST = 1
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
     if plot_TF:
-        fig,axs = plt.subplots(3,3)
+        fig,axs = plt.subplots(2,2)
         # axs = axs.ravel()
 
     # cell_traces is a dictionary of frequencies 
@@ -112,14 +112,14 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             if plot_TF:
                 # print(len(error))
                 # print(len(response))
-                axs[2-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[2-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
+                axs[plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
+                axs[plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
                 # axs[plot_row_counter,plot_coln_counter].plot(response)
                 # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[2-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[2-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[2-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[2-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
+                axs[plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
+                axs[plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
+                axs[plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
+                axs[plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
                 # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
 
             # zscore_response = zscore(response)
