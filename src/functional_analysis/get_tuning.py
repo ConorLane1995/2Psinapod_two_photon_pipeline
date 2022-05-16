@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 import pickle
 import sys
 import json
-sys.path.append("../")
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + '..\..\\')
 from utils import get_active_cells
 from scipy.stats import zscore
 
 # load what we need from the config file
-with open('/Users/veronica/2Psinapod/config.json','r') as f:
+with open(os.path.abspath(os.path.dirname(__file__)) +'\..\..\config.json','r') as f:
     config = json.load(f)
 
 BASE_PATH = config['RecordingFolder']
@@ -21,12 +22,12 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 1
+CELL_OF_INTEREST = 36
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
     if plot_TF:
-        fig,axs = plt.subplots(2,2)
+        fig,axs = plt.subplots(4,3)
         # axs = axs.ravel()
 
     # cell_traces is a dictionary of frequencies 
@@ -112,14 +113,14 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             if plot_TF:
                 # print(len(error))
                 # print(len(response))
-                axs[plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
+                axs[3-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
+                axs[3-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
                 # axs[plot_row_counter,plot_coln_counter].plot(response)
                 # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
+                axs[3-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
+                axs[3-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
+                axs[3-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
+                axs[3-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
                 # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
 
             # zscore_response = zscore(response)
@@ -319,12 +320,12 @@ def plot_tuning_curves(cell_dictionary):
     axs = axs.ravel()
     counter = 0
     for cell in cell_dictionary:
-        # if counter<25:
-        #     counter += 1
-        #     continue
+        if counter<25:
+            counter += 1
+            continue
 
         cell_tuning = cell_dictionary[cell]['tuning_curve']
-        counter += 25
+        # counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
         # axs[counter-25].set_xticks([0,2,4,6,8])
@@ -333,8 +334,8 @@ def plot_tuning_curves(cell_dictionary):
         # axs[counter-25].set_yticklabels(intensity_labels)
         axs[counter-25].title.set_text(cell)
 
-        counter -= 25
-        if counter==24:
+        # counter -= 25
+        if counter==49:
             break
         counter += 1
 
@@ -345,8 +346,8 @@ def plot_single_tuning_curve(cell_dictionary,cell_IDX):
     fig = plt.figure(1)
     ax = fig.gca()
 
-    frequency_labels = [2,4.5,10,23,52]
-    intensity_labels = [50,70,90]
+    frequency_labels = [5.7,23,45] #,52]
+    intensity_labels = [0,70,80,90] #[50,70,90]
 
     # get cell ID at this index so we can pull its tuning curve
     cell_IDs = list(cell_dictionary.keys())
@@ -356,9 +357,9 @@ def plot_single_tuning_curve(cell_dictionary,cell_IDX):
 
     im = plt.imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
     plt.colorbar(im)
-    plt.xticks([0,2,4,6,8])
+    plt.xticks([0,1,2])
     ax.set_xticklabels(frequency_labels)
-    plt.yticks([1,3,5])
+    plt.yticks([0,1,2,3])
     ax.set_yticklabels(intensity_labels)
     plt.show()
 
@@ -375,6 +376,7 @@ def get_tuning_curves(cell_dictionary):
     for cell in cell_dictionary:
         if counter == CELL_OF_INTEREST:
             cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],True)
+            print(cell)
         else:
             cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],False)
         
@@ -391,8 +393,8 @@ def main():
     active_cell_dictionary = get_active_cells(cell_dictionary)
     cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    plot_tuning_curves(active_cell_dictionary)
-    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    # plot_tuning_curves(active_cell_dictionary)
+    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
     with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
