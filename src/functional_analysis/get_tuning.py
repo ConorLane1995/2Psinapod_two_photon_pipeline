@@ -86,7 +86,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             all_trials_as_np = np.array(all_trials_of_this_intensity)
 
             # average across all the trials to get a 1 x nFrames vector
-            average_trial_of_this_intensity = np.average(all_trials_as_np, axis=0)
+            average_trial_of_this_intensity = np.median(all_trials_as_np, axis=0)
 
             # now we grab the peak of the trace occuring AFTER the onset
             
@@ -320,22 +320,23 @@ def plot_tuning_curves(cell_dictionary):
     axs = axs.ravel()
     counter = 0
     for cell in cell_dictionary:
-        if counter<25:
-            counter += 1
-            continue
+        # if counter<25:
+        #     counter += 1
+        #     continue
 
         cell_tuning = cell_dictionary[cell]['tuning_curve']
-        # counter += 25
+        counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
+        # plt.clim(0,100)
         # axs[counter-25].set_xticks([0,2,4,6,8])
         # axs[counter-25].set_xticklabels(frequency_labels)
         # axs[counter-25].set_yticks([0,2,4])
         # axs[counter-25].set_yticklabels(intensity_labels)
         axs[counter-25].title.set_text(cell)
 
-        # counter -= 25
-        if counter==49:
+        counter -= 25
+        if counter==24:
             break
         counter += 1
 
@@ -375,10 +376,10 @@ def get_tuning_curves(cell_dictionary):
     counter = 0
     for cell in cell_dictionary:
         if counter == CELL_OF_INTEREST:
-            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],True)
+            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],True)
             print(cell)
         else:
-            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],False)
+            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
         
         counter+=1
 
@@ -390,11 +391,11 @@ def main():
     with open(BASE_PATH + cell_dictionary_file, 'rb') as f:
         cell_dictionary = pickle.load(f)
     
-    active_cell_dictionary = get_active_cells(cell_dictionary)
-    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
+    cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary)
 
-    # plot_tuning_curves(active_cell_dictionary)
-    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    active_cell_dictionary = get_active_cells(cell_dictionary_with_tuning)
+    plot_tuning_curves(active_cell_dictionary)
+    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
     with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:

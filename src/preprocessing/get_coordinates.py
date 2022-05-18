@@ -1,8 +1,8 @@
 import numpy as np
 import pickle
 
-BASE_PATH = "D:/Vid_140/"
-cell_dictionary_file = "cells.pkl"
+BASE_PATH = "D:\\Lab\\2P\\Vid_176\\"
+cell_dictionary_file = "cells_std.pkl"
 
 def main():
     stat = np.load(BASE_PATH+"stat.npy",allow_pickle=True)
