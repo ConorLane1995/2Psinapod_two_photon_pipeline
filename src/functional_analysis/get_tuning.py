@@ -315,6 +315,9 @@ def plot_tuning_curves(cell_dictionary):
     frequency_labels = [2,4.5,10,23,52]
     intensity_labels = [30,50,70]
 
+    frequency_labels = [5.7,23,45] #,52]
+    intensity_labels = [0,70,80,90] #[50,70,90]
+
     fig,axs = plt.subplots(5,5,figsize=(15,15))
     fig.subplots_adjust(hspace=0.5,wspace=0.001)
     axs = axs.ravel()
@@ -333,6 +336,10 @@ def plot_tuning_curves(cell_dictionary):
         # axs[counter-25].set_xticklabels(frequency_labels)
         # axs[counter-25].set_yticks([0,2,4])
         # axs[counter-25].set_yticklabels(intensity_labels)
+        axs[counter-25].set_xticks([0,1,2])
+        axs[counter-25].set_xticklabels(frequency_labels)
+        axs[counter-25].set_yticks([0,1,2,3])
+        axs[counter-25].set_yticklabels(intensity_labels)
         axs[counter-25].title.set_text(cell)
 
         counter -= 25
@@ -376,10 +383,10 @@ def get_tuning_curves(cell_dictionary):
     counter = 0
     for cell in cell_dictionary:
         if counter == CELL_OF_INTEREST:
-            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],True)
+            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],False)
             print(cell)
         else:
-            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
+            cell_dictionary[cell]['tuning_curve'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],False)
         
         counter+=1
 
@@ -398,8 +405,8 @@ def main():
     # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
-    with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
-        pickle.dump(cell_dictionary_with_tuning,f)
+    # with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
+    #     pickle.dump(cell_dictionary_with_tuning,f)
 
 
 
