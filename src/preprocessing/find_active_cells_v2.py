@@ -28,7 +28,7 @@ FRAMERATE = config['RecordingFR']
 EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd']
 
-STD_THRESHOLD = 5 # number of standard deviations from baseline the peak response must be in order for the cell to be considered active
+STD_THRESHOLD = 4 # number of standard deviations from baseline the peak response must be in order for the cell to be considered active
 ZSCORE_THRESHOLD = 2 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
 
 def get_high_intensity_avg(cell_trace):
