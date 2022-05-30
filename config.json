@@ -5,7 +5,7 @@
   "TriggerFR": 100,
   "Conditions": "ID112_LogstimCorrect_24052022_1.mat",
   "RecordingFR": 10,
-  "AnalysisFile": "cells_plotly.pkl",
+  "AnalysisFile": "cells_not_shifted.pkl",
   "EpochStart": -500,
   "EpochEnd": 2500,
   "TriggerDelay": 50

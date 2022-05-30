@@ -237,7 +237,7 @@ def main():
     # stimulus_onset_frames = stimulus_onset_frames[:-1]
     # conditions = conditions[:-1]
 
-    stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
+    stimulus_onset_frames = stimulus_onset_frames[1:]#[:-1]#[1:]#[:-1] # remove the last element
     conditions = conditions[1:] # remove first trial label
 
     # account for the neuropil (background fluorescence)

@@ -327,7 +327,7 @@ def plot_tuning_curves(cell_dictionary):
         #     counter += 1
         #     continue
 
-        cell_tuning = cell_dictionary[cell]['tuning_curve_peak']
+        cell_tuning = cell_dictionary[cell]['tuning_curve_adj']
         counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
@@ -401,7 +401,7 @@ def main():
     cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary)
 
     active_cell_dictionary = get_active_cells(cell_dictionary_with_tuning)
-    plot_tuning_curves(active_cell_dictionary)
+    # plot_tuning_curves(active_cell_dictionary)
     # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
