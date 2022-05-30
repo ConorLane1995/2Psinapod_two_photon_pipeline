@@ -69,4 +69,4 @@ def get_avg_trace(cell_trace):
                 summed_traces[counter,:] = cell_trace[freq][intensity][repetition]
                 counter += 1
 
-    return np.average(summed_traces,axis=0)
+    return np.median(summed_traces,axis=0)

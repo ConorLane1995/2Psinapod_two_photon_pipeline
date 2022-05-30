@@ -1,11 +1,11 @@
 {
   "RepoDir": "C:\\Users\\vmtar\\2Psinapod\\",
-  "RecordingFolder": "D:\\Lab\\2P\\Vid_181\\",
-  "Triggers": "TSeries-05242022-1349-181_Cycle00001_VoltageRecording_001.csv",
+  "RecordingFolder": "D:\\Lab\\2P\\Vid_186\\",
+  "Triggers": "TSeries-05272022-1306-186_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,
-  "Conditions": "ID112_LogstimCorrect_24052022_1.mat",
+  "Conditions": "ID112_LogstimSil_270522_2.mat",
   "RecordingFR": 10,
-  "AnalysisFile": "cells_not_shifted.pkl",
+  "AnalysisFile": "cells.pkl",
   "EpochStart": -500,
   "EpochEnd": 2500,
   "TriggerDelay": 50

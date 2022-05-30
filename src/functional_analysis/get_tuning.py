@@ -22,12 +22,12 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 36
+CELL_OF_INTEREST = 2
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
     if plot_TF:
-        fig,axs = plt.subplots(4,3)
+        fig,axs = plt.subplots(7,9)
         # axs = axs.ravel()
 
     # cell_traces is a dictionary of frequencies 
@@ -113,14 +113,14 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             if plot_TF:
                 # print(len(error))
                 # print(len(response))
-                axs[3-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[3-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
+                axs[6-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
+                axs[6-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
                 # axs[plot_row_counter,plot_coln_counter].plot(response)
                 # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[3-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[3-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[3-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[3-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
+                axs[6-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
+                axs[6-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
+                axs[6-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
+                axs[6-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
                 # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
 
             # zscore_response = zscore(response)
@@ -327,7 +327,7 @@ def plot_tuning_curves(cell_dictionary):
         #     counter += 1
         #     continue
 
-        cell_tuning = cell_dictionary[cell]['tuning_curve_adj']
+        cell_tuning = cell_dictionary[cell]['tuning_curve_peak']
         counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
@@ -361,7 +361,7 @@ def plot_single_tuning_curve(cell_dictionary,cell_IDX):
     cell_IDs = list(cell_dictionary.keys())
     cell_of_interest_ID = cell_IDs[cell_IDX]
 
-    cell_tuning = cell_dictionary[cell_of_interest_ID]['tuning_curve']
+    cell_tuning = cell_dictionary[cell_of_interest_ID]['tuning_curve_peak']
 
     im = plt.imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
     plt.colorbar(im)
@@ -383,7 +383,7 @@ def get_tuning_curves(cell_dictionary):
     counter = 0
     for cell in cell_dictionary:
         if counter == CELL_OF_INTEREST:
-            cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],False)
+            cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],True)
             print(cell)
         else:
             cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_peak(cell_dictionary[cell]['traces'],False)
@@ -398,11 +398,11 @@ def main():
     with open(BASE_PATH + cell_dictionary_file, 'rb') as f:
         cell_dictionary = pickle.load(f)
     
-    cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary)
+    active_cell_dictionary = get_active_cells(cell_dictionary)
+    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    active_cell_dictionary = get_active_cells(cell_dictionary_with_tuning)
-    # plot_tuning_curves(active_cell_dictionary)
-    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    plot_tuning_curves(cell_dictionary_with_tuning)
+    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
     with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
