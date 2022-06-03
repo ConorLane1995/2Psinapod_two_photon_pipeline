@@ -240,8 +240,8 @@ def main():
     stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
     conditions = conditions[1:] # remove first trial label
 
-    # print(np.unique(conditions[:,0]))
-    # print(np.unique(conditions[:,1]))
+    print(np.unique(conditions[:,0]))
+    print(np.unique(conditions[:,1]))
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
