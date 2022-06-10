@@ -7,12 +7,12 @@ import pickle
 import sys
 import json
 import os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)) + '..\..\\')
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + '/../')
 from utils import get_active_cells
 from scipy.stats import zscore
 
 # load what we need from the config file
-with open(os.path.abspath(os.path.dirname(__file__)) +'\..\..\config.json','r') as f:
+with open(os.path.abspath(os.path.dirname(__file__)) +'/../../config.json','r') as f:
     config = json.load(f)
 
 BASE_PATH = config['RecordingFolder']
@@ -400,8 +400,9 @@ def main():
     
     active_cell_dictionary = get_active_cells(cell_dictionary)
     cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary)
+    active_cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    plot_tuning_curves(cell_dictionary_with_tuning)
+    plot_tuning_curves(active_cell_dictionary_with_tuning)
     # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
