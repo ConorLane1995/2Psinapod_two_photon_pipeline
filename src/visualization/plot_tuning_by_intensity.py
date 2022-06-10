@@ -23,7 +23,7 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 108
+CELL_OF_INTEREST = 37
 
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):

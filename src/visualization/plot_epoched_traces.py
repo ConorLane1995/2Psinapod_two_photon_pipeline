@@ -68,7 +68,7 @@ def plot_trials(epoched_traces,n_trial_samples,n_cell_samples):
 def plot_all_traces(fl,onsets):
     fig = plt.figure(2)
     for i in range(len(fl)):
-        if i==53:
+        if i==36:
             plt.plot(fl[i,:],'r') #,label=i)
 
     # plt.legend(loc="upper left")

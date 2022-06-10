@@ -332,10 +332,10 @@ def plot_tuning_curves(cell_dictionary):
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
         # plt.clim(0,100)
-        axs[counter-25].set_xticks([0,2,4,6,8])
-        axs[counter-25].set_xticklabels(frequency_labels)
-        axs[counter-25].set_yticks([0,2,4])
-        axs[counter-25].set_yticklabels(intensity_labels)
+        # axs[counter-25].set_xticks([0,2,4,6,8])
+        # axs[counter-25].set_xticklabels(frequency_labels)
+        # axs[counter-25].set_yticks([0,2,4])
+        # axs[counter-25].set_yticklabels(intensity_labels)
         # axs[counter-25].set_xticks([0,1,2])
         # axs[counter-25].set_xticklabels(frequency_labels)
         # axs[counter-25].set_yticks([0,1,2,3])
@@ -399,10 +399,10 @@ def main():
         cell_dictionary = pickle.load(f)
     
     active_cell_dictionary = get_active_cells(cell_dictionary)
-    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
+    cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary)
 
     plot_tuning_curves(cell_dictionary_with_tuning)
-    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
 
     with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
