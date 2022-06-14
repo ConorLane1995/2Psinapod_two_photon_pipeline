@@ -22,7 +22,7 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 2
+CELL_OF_INTEREST = 1
 
 def get_cell_tuning_by_peak(cell_traces,plot_TF):
 
@@ -43,6 +43,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
     plot_coln_counter = 0
     frequency_counter = 0 # to keep track of where we're indexing the empty array
     for freq in cell_traces:
+
         intensity_counter = 0
 
         # find the number of intensities we presented at
@@ -55,6 +56,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
         # iterate through each intensity the frequency was presented at
         plot_row_counter = 0
         for intensity in cell_traces[freq]:
+
             # collect all the trials of this one frequency presented at this one intensity
             # it will be an nTrials x nFrames matrix
             all_trials_of_this_intensity = []
@@ -86,7 +88,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             all_trials_as_np = np.array(all_trials_of_this_intensity)
 
             # average across all the trials to get a 1 x nFrames vector
-            average_trial_of_this_intensity = np.median(all_trials_as_np, axis=0)
+            average_trial_of_this_intensity = np.average(all_trials_as_np, axis=0)
 
             # now we grab the peak of the trace occuring AFTER the onset
             
@@ -114,7 +116,7 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
                 # print(len(error))
                 # print(len(response))
                 axs[6-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[6-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
+                axs[6-plot_row_counter,plot_coln_counter].axvline(x=4,color='k',linestyle='--')
                 # axs[plot_row_counter,plot_coln_counter].plot(response)
                 # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
                 axs[6-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)

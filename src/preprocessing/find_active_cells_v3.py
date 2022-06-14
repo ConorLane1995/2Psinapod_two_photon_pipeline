@@ -29,52 +29,27 @@ FRAMERATE = config['RecordingFR']
 EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd']
 
-STD_THRESHOLD = 3 # number of standard deviations from baseline the peak response must be in order for the cell to be considered active
+STD_THRESHOLD = 7 # number of standard deviations from baseline the peak response must be in order for the cell to be considered active
 ZSCORE_THRESHOLD = 2 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
 
-def get_high_intensity_avg(cell_trace):
-    # cell_trace is going to be all the trials of this one cell
-    # {freq: intensity: repetition: trace = [x,x,x,x,...]}}}
+def check_freq(cell_traces,n_baseline_frames):
 
-    # first we need to find how much space to allocate
-    n_samples = 0
-    n_trials = 0
-    for freq in cell_trace:
-        highest_intensity = list(cell_trace[freq])[-1]
-        for repetition in cell_trace[freq][highest_intensity]:
-            if n_trials == 0:
-                n_samples = len(cell_trace[freq][highest_intensity][repetition])
-            n_trials += 1
-              
-    summed_traces = np.zeros(shape=(n_trials,n_samples))
+    # get the average response at this frequency
+    concatenated_traces = []
+    for itsy in cell_traces:
+        for rep in cell_traces[itsy]:
+            concatenated_traces.append(cell_traces[itsy][rep])
+            # plt.plot(cell_traces[itsy][rep],color='black')
 
-    counter = 0
-    # let's get a sum of all our traces to average later
-    for freq in cell_trace:
-        highest_intensity = list(cell_trace[freq])[-1]
-        for repetition in cell_trace[freq][highest_intensity]:
-            trace = cell_trace[freq][highest_intensity][repetition]
-            summed_traces[counter,:] = trace
-            counter += 1
+    avg_trace = np.array(concatenated_traces)
+    avg_trace = np.average(avg_trace,axis=0)
 
-    return np.average(summed_traces,axis=0)
-
-# Method to check whether a cell is active based on number of STDs from baseline
-def check_cell_STD(cell_trace,n_baseline_frames):
-
-    this_cell_trace = get_avg_trace(cell_trace)
-
-    for freq in cell_trace:
-        for itsy in cell_trace[freq]:
-            for rep in cell_trace[freq][itsy]:
-                plt.plot(cell_trace[freq][itsy][rep],color='black')
-
-    plt.plot(this_cell_trace,linewidth=5,color='red')
-    plt.show()
+    # plt.plot(avg_trace,color='r',linewidth=5)
+    # plt.show()
 
     # get the baseline for this trial
-    baseline = this_cell_trace[0:n_baseline_frames]
-    response = this_cell_trace[n_baseline_frames:]
+    baseline = avg_trace[0:n_baseline_frames]
+    response = avg_trace[n_baseline_frames:]
 
     # get our threshold
     peak_threshold = np.mean(baseline) + STD_THRESHOLD*np.std(baseline)
@@ -86,54 +61,21 @@ def check_cell_STD(cell_trace,n_baseline_frames):
     peak_response_idx = np.argmax(response)
 
     # if our peak response was above our threshold, increase the counter
-    if (peak_response >= peak_threshold) and (peak_response_idx < 10) and (peak_response > 30):
+    if (peak_response >= peak_threshold) and (peak_response_idx < 30): # and (peak_response > 30):
         return True
     else:
         return False
 
-# Method to check if cell is active based on number of z-scores from baseline
-def check_cell_zscore(cell_trace,n_baseline_frames):
-    # cell_trace is going to be all the trials of this one cell
-    # {freq: intensity: repetition: trace = [x,x,x,x,...]}}}
+# Method to check whether a cell is active based on number of STDs from baseline
+def check_cell_STD(cell_trace,n_baseline_frames):
 
-    active = False
+    found_active = False
+    for freq in cell_trace:
+        if check_freq(cell_trace[freq],n_baseline_frames):
+            found_active = True
 
-    # get our average trace
-    avg_trace = get_high_intensity_avg(cell_trace)
-
-    # convert it to z scores
-    # avg_trace_zscores = zscore(avg_trace)
-
-    onset = round(EPOCH_START_IN_MS/1000 * FRAMERATE * -1) # how many extra frames we have at the beginning before our stim onset
-    
-    baseline = avg_trace[0:onset]
-    baseline_mean = np.average(baseline)
-    baseline_std = np.std(baseline)
-
-    if baseline_std!=0:
-        zscorer = lambda x: (x-baseline_mean)/baseline_std
-    else:
-        zscorer = lambda x: x
-
-
-    response = avg_trace[n_baseline_frames:]
-    zscore_response = np.array([zscorer(xi) for xi in response])
-    # print(zscore_response)
-    # input()
-    # all_trials_of_this_intensity.append(zscore_response)
-
-    # divide it into baseline and response
-
-    # get the peak of the response
-    peak_response = np.amax(zscore_response)
-
-    # get the index of the peak response
-    peak_response_idx = np.argmax(zscore_response)
-
-    if (peak_response > ZSCORE_THRESHOLD) and (peak_response_idx < 10):
-        active = True
-
-    return active
+    # if our peak response was above our threshold, increase the counter
+    return found_active
     
 
 def check_all_cells(cell_dictionary,n_baseline_frames):
