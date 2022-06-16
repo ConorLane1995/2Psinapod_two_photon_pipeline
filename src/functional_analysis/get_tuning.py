@@ -331,7 +331,7 @@ def plot_tuning_curves(cell_dictionary):
 
         cell_tuning = cell_dictionary[cell]['tuning_curve_peak']
         counter += 25
-        im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
+        im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='viridis',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
         # plt.clim(0,100)
         # axs[counter-25].set_xticks([0,2,4,6,8])
