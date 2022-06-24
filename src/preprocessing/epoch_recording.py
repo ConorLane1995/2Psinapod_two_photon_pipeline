@@ -113,7 +113,7 @@ def epoch_trace(fl,onset_frames):
 
             # grab this range of frames from the fl trace and store it in the epoched matrix
             trace = fl[roi_idx,int(trial_starting_frame):int(trial_ending_frame)]
-            epoched_traces[roi_idx,trial_idx,:] = trace[:30]
+            epoched_traces[roi_idx,trial_idx,:] = trace[:16]
 
     return epoched_traces
 
@@ -220,7 +220,7 @@ def main():
     stimulus = np.genfromtxt(BASE_PATH + csv_path,delimiter=',',skip_header=True) # voltage values of the trigger software over the recording
     conditions_mat = scio.loadmat(BASE_PATH + conditions_path) # conditition type of each trial in chronological order (row 1 = trial 1)
     conditions = conditions_mat["stim_data"]
-    fluorescence_trace = np.load(BASE_PATH + "spks.npy",allow_pickle=True) # uncorrected trace of dF/F
+    fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True) # uncorrected trace of dF/F
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True) # estimation of background fluorescence
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True) # Suite2P's estimation of whether each ROI is a cell or not
 
@@ -234,17 +234,17 @@ def main():
     stimulus_onset_frames = get_onset_frames(stimulus)
 
     # DELETE LATER
-    # stimulus_onset_frames = stimulus_onset_frames[:-1]
+    # stimulus_onset_frames = stimulus_onset_frames[1:]
     # conditions = conditions[:-1]
 
-    stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
-    conditions = conditions[1:] # remove first trial label
+    # stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
+    # conditions = conditions[1:] # remove first trial label
 
     print(np.unique(conditions[:,0]))
     print(np.unique(conditions[:,1]))
 
     # account for the neuropil (background fluorescence)
-    corrected_fluo = fluorescence_trace #- 0.7*neuropil_trace
+    corrected_fluo = fluorescence_trace - 0.7*neuropil_trace
     
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]

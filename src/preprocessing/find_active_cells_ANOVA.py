@@ -37,7 +37,7 @@ def make_pd_df_from_dict(cell_trace,nFreq,nItsy,nReps):
             each_trial_avg_container = []
 
             for rep in cell_trace[freq][itsy]:
-                trial_activity = cell_trace[freq][itsy][rep]
+                trial_activity = cell_trace[freq][itsy][rep][5:]
                 trial_avg = np.average(trial_activity)
                 evoked_activity[idx_counter] = trial_avg
                 idx_counter += 1
@@ -66,7 +66,7 @@ def main():
 
     active_cell_counter = 0 
     for cell in cell_dictionary:
-        df = make_pd_df_from_dict(cell_dictionary[cell]['traces'],9,7,5)
+        df = make_pd_df_from_dict(cell_dictionary[cell]['traces'],5,4,10)
 
         model = ols('activity ~ C(frequency) + C(intensity) + C(frequency):C(intensity)',data=df).fit()
 
