@@ -453,7 +453,7 @@ def plot_tuning_curves(cell_dictionary):
         cell_tuning = cell_dictionary[cell]['tuning_curve_peak']
         smooth_cell_tuning = gaussian_filter(cell_tuning,1)
         counter += 25
-        im = axs[counter-25].imshow(np.transpose(smooth_cell_tuning),cmap='winter',origin='lower')
+        im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='winter',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
         # plt.clim(0,100)
         # axs[counter-25].set_xticks([0,2,4,6,8])
