@@ -1,9 +1,9 @@
 {
-  "RepoDir": "/home/bic/vtarka/2Psinapod/",
-  "RecordingFolder": "/media/vtarka/USB DISK/Lab/2P/Vid_205/",
-  "Triggers": "TSeries-06202022-1421-205_Cycle00001_VoltageRecording_001.csv",
+  "RepoDir": "C:\\Users\\vmtar\\2Psinapod",
+  "RecordingFolder": "D:/Lab/2P/Vid_210/",
+  "Triggers": "TSeries-06232022-1734-210_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,
-  "Conditions": "ID112_Kerry_20062022_1.mat",
+  "Conditions": "ID112_12Freq_23062022_2.mat",
   "RecordingFR": 10,
   "AnalysisFile": "cells_ns.pkl",
   "EpochStart": -500,

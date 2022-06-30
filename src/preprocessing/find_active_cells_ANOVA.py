@@ -66,7 +66,7 @@ def main():
 
     active_cell_counter = 0 
     for cell in cell_dictionary:
-        df = make_pd_df_from_dict(cell_dictionary[cell]['traces'],5,4,10)
+        df = make_pd_df_from_dict(cell_dictionary[cell]['traces'],12,4,10)
 
         model = ols('activity ~ C(frequency) + C(intensity) + C(frequency):C(intensity)',data=df).fit()
 

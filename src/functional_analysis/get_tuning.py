@@ -268,7 +268,7 @@ def get_cell_tuning_by_avg(cell_traces,plot_TF):
 def get_cell_tuning_by_zscore(cell_traces,plot_TF):
 
     if plot_TF:
-        fig,axs = plt.subplots(6,9)
+        fig,axs = plt.subplots(4,12)
         # axs = axs.ravel()
 
     # cell_traces is a dictionary of frequencies 
@@ -360,14 +360,14 @@ def get_cell_tuning_by_zscore(cell_traces,plot_TF):
             if plot_TF:
                 # print(len(error))
                 # print(len(response))
-                axs[5-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
+                axs[plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
                 # axs[5-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
                 # axs[plot_row_counter,plot_coln_counter].plot(response)
                 # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[5-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[5-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[5-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[5-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=150)
+                axs[plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
+                axs[plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
+                axs[plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
+                axs[plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=150)
                 # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
 
             # zscore_response = zscore(response)
