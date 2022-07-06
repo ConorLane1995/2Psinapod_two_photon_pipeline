@@ -20,6 +20,12 @@ def get_best_frequency_by_area(cell):
     freqs = [0,4,8,11,23,45]
     return freqs[max_response_idx,0]
 
+def get_best_frequency(cell_tuning,freqs):
+    median_across_itsies = np.median(cell_tuning, axis=0)
+    max_response_idx = np.argmax(median_across_itsies)
+    return freqs(max_response_idx)
+
+
 def get_active_cells(traces):
 
     # going to return a dictionary with only active cells, formatted exactly the same as traces
