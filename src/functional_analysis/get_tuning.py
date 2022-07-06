@@ -317,7 +317,7 @@ def get_cell_tuning_by_zscore(cell_traces,plot_TF):
                 if baseline_std!=0:
                     zscorer = lambda x: (x-baseline_mean)#/baseline_std
                 else:
-                    zscorer = lambda x: x
+                    zscorer = lambda x: x-baseline_mean
 
 
                 response = trace[n_baseline_frames:]

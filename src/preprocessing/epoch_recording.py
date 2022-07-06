@@ -108,12 +108,12 @@ def epoch_trace(fl,onset_frames):
         for trial_idx in range(len(onset_frames)):
             
             # get the trial starting frame and ending frame
-            trial_starting_frame = np.round(onset_frames[trial_idx] + (EPOCH_START_IN_MS/1000*RECORDING_FRAMERATE))
-            trial_ending_frame = np.round(onset_frames[trial_idx] + (EPOCH_END_IN_MS/1000*RECORDING_FRAMERATE))
+            trial_starting_frame = np.round(onset_frames[trial_idx]) + (EPOCH_START_IN_MS/1000*RECORDING_FRAMERATE)
+            trial_ending_frame = np.round(onset_frames[trial_idx]) + (EPOCH_END_IN_MS/1000*RECORDING_FRAMERATE)
 
             # grab this range of frames from the fl trace and store it in the epoched matrix
             trace = fl[roi_idx,int(trial_starting_frame):int(trial_ending_frame)]
-            epoched_traces[roi_idx,trial_idx,:] = trace[:16]
+            epoched_traces[roi_idx,trial_idx,:] = trace[:15]
 
     return epoched_traces
 

@@ -64,13 +64,13 @@ def check_cell_STD(cell_trace,n_baseline_frames):
 
     this_cell_trace = get_avg_trace(cell_trace)
 
-    for freq in cell_trace:
-        for itsy in cell_trace[freq]:
-            for rep in cell_trace[freq][itsy]:
-                plt.plot(cell_trace[freq][itsy][rep],color='black')
+    # for freq in cell_trace:
+    #     for itsy in cell_trace[freq]:
+    #         for rep in cell_trace[freq][itsy]:
+    #             plt.plot(cell_trace[freq][itsy][rep],color='black')
 
-    plt.plot(this_cell_trace,linewidth=5,color='red')
-    plt.show()
+    # plt.plot(this_cell_trace,linewidth=5,color='red')
+    # plt.show()
 
     # get the baseline for this trial
     baseline = this_cell_trace[0:n_baseline_frames]
@@ -86,7 +86,7 @@ def check_cell_STD(cell_trace,n_baseline_frames):
     peak_response_idx = np.argmax(response)
 
     # if our peak response was above our threshold, increase the counter
-    if (peak_response >= peak_threshold) and (peak_response_idx < 10) and (peak_response > 30):
+    if (peak_response >= peak_threshold): # and (peak_response_idx < 10):
         return True
     else:
         return False
