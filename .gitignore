@@ -8,3 +8,5 @@ src/plotly_dash/deploy/
 
 src/config.json
 config.json
+
+.vscode/
