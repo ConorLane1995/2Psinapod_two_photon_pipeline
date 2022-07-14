@@ -315,7 +315,7 @@ def get_cell_tuning_by_zscore(cell_traces,plot_TF):
                 baseline_std = np.std(baseline)
 
                 if baseline_std!=0:
-                    zscorer = lambda x: (x-baseline_mean)#/baseline_std
+                    zscorer = lambda x: (x-baseline_mean)/baseline_std
                 else:
                     zscorer = lambda x: x-baseline_mean
 
@@ -435,11 +435,14 @@ def get_cell_tuning_by_area(cell_traces):
     return tuning_curves
 
 def plot_tuning_curves(cell_dictionary):
-    frequency_labels = [2,4.5,10,23,52]
-    intensity_labels = [30,50,70]
+    # frequency_labels = [2,4.5,10,23,52]
+    # intensity_labels = [30,50,70]
 
     # frequency_labels = [5.7,23,45] #,52]
     # intensity_labels = [0,70,80,90] #[50,70,90]
+    frequency_labels = [4.4,6.6,10,16,23,34]
+    # # intensity_labels = [30,50,70]
+    intensity_labels = [30,50,70,90]
 
     fig,axs = plt.subplots(5,5,figsize=(15,15))
     fig.subplots_adjust(hspace=0.5,wspace=0.001)
@@ -456,14 +459,19 @@ def plot_tuning_curves(cell_dictionary):
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='winter',origin='lower')
         plt.colorbar(im,ax=axs[counter-25])
         # plt.clim(0,100)
-        # axs[counter-25].set_xticks([0,2,4,6,8])
-        # axs[counter-25].set_xticklabels(frequency_labels)
+        axs[counter-25].set_xticks([0,2,4,6,8,10])
+        axs[counter-25].set_xticklabels(frequency_labels)
         # axs[counter-25].set_yticks([0,2,4])
         # axs[counter-25].set_yticklabels(intensity_labels)
         # axs[counter-25].set_xticks([0,1,2])
         # axs[counter-25].set_xticklabels(frequency_labels)
-        # axs[counter-25].set_yticks([0,1,2,3])
-        # axs[counter-25].set_yticklabels(intensity_labels)
+        axs[counter-25].set_yticks([0,1,2,3])
+        axs[counter-25].set_yticklabels(intensity_labels)
+
+        if counter-25 == 0:
+            axs[counter-25].set_ylabel("Intensity (dB)")
+            axs[counter-25].set_xlabel("Frequency (Hz)")
+
         axs[counter-25].title.set_text(cell)
 
         counter -= 25
@@ -507,7 +515,7 @@ def get_tuning_curves(cell_dictionary):
     counter = 0
     for cell in cell_dictionary:
         if counter == CELL_OF_INTEREST:
-            cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],True)
+            cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
             print(cell)
         else:
             cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)

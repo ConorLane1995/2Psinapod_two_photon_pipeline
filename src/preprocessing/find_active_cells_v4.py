@@ -30,7 +30,7 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd']
 
 STD_THRESHOLD = 3 # number of standard deviations from baseline the peak response must be in order for the cell to be considered active
-ZSCORE_THRESHOLD = 3 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
+ZSCORE_THRESHOLD = 2 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
 
 def get_zscored_response(trial,n_baseline_frames):
     baseline = trial[:n_baseline_frames]

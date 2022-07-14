@@ -30,26 +30,13 @@ def plot_events(cell_trace,events):
     plt.show()
 
 def main():
-    with open(BASE_PATH + cell_dictionary_file, 'rb') as f:
-        cell_dictionary = pickle.load(f)
 
-    with open(BASE_PATH+"events.pkl",'rb') as f:
-        events = pickle.load(f)
+    with open(BASE_PATH+"corrcoefs.pkl",'rb') as f:
+        coeffs = pickle.load(f)
 
-    recording_length = len(cell_dictionary[1]['traces'])
+    coeffs[coeffs>0.99] = 0
 
-    cell_idx = 0
-    n_events_per_cell = []
-    for cell in cell_dictionary:
-        # plot_events(cell_dictionary[cell]['traces'],events[cell_idx])
-        n_events_per_cell.append(len(events[cell_idx][0])/recording_length)
-
-        cell_idx += 1
-
-    plt.hist(n_events_per_cell,density=True)
-    plt.xlabel("Number of events / Number of frames")
-    plt.ylabel("Normalized number of neurons")
-    plt.title("Post-Psilocybin Spontaneous Events")
+    plt.imshow(coeffs)
     plt.show()
 
 if __name__=="__main__":
