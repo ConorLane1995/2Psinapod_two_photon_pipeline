@@ -60,7 +60,7 @@ def main():
         cell_dict = pickle.load(f)
 
     # get only the active cells
-    active_cell_dict = get_active_cells(cell_dict)
+    active_cell_dict = cell_dict #get_active_cells(cell_dict)
 
     active_cell_dict_formatted = format_for_corrcoef(active_cell_dict)
     # print(active_cell_dict_formatted)
