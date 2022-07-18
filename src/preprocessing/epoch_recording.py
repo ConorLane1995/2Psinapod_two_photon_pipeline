@@ -251,10 +251,14 @@ def main():
 
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_trace(fluo_in_cells,stimulus_onset_frames)
+    epoched_traces_all = epoch_trace(corrected_fluo,stimulus_onset_frames)
 
     np.save(BASE_PATH+"raw_corrected_traces.npy",fluo_in_cells) # save the trace for each cell ROI 
     np.save(BASE_PATH+"epoched_traces.npy",epoched_traces) # save the trace for trial before it's formatted into a dictionary
     np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames) # save the list of trigger frames (trial onsets)
+
+    np.save(BASE_PATH+"raw_corrected_traces_all.npy",corrected_fluo) # save the trace for each cell ROI 
+    np.save(BASE_PATH+"epoched_traces_all.npy",epoched_traces_all) # save the trace for trial before it's formatted into a dictionary
 
     dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
 

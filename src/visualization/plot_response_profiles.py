@@ -68,7 +68,7 @@ def main():
 
     plt.show()
 
-    plt.imshow(full_profiles,extent=[0,5,0,10],aspect=1.1,cmap=plt.cm.jet)
+    plt.imshow(full_profiles,extent=[0,5,0,10],aspect=1.1,cmap=plt.cm.magma)
     plt.axhline(y=10-len(active_BFs)/38.5,color='white')
     plt.show()
 
