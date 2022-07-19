@@ -46,7 +46,7 @@ def check_cell_STD(cell_trace,n_baseline_frames):
     # get the peak response
     peak_response = np.amax(response)
 
-    # if our peak response was above our threshold, increase the counter
+    # if our peak response was above our threshold, return True
     if peak_response >= peak_threshold:
         return True
     else:

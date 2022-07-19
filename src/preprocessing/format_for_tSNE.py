@@ -22,6 +22,10 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
+def get_BF(cell_dict, cell_ID,freqs):
+    median_across_itsies = np.median(cell_dict[cell_ID]['tuning_curve_peak'], axis=1)
+    max_response_idx = np.argmax(median_across_itsies)
+    return freqs[max_response_idx]
 
 
 def main():
@@ -39,6 +43,16 @@ def main():
     active_raw_traces = raw_traces[active_cells_idx,:]
     active_epoched_traces = epoched_traces[active_cells_idx,:,:]
 
+    frequencies = [4.4,5.4,6.6,8.1,10,12,15,19,23,28,35,43]
+    BFs = []
+    for cell in active_cell_dictionary:
+        BFs.append(get_BF(active_cell_dictionary,cell,frequencies))
+
+    plt.hist(BFs)
+    plt.show()
+
+    unique_BFs = np.unique(BFs)
+    np.save(BASE_PATH+"BF_labeling.npy",BFs)
     np.save(BASE_PATH+"active_corrected_traces.npy",active_raw_traces) # save the trace for each cell ROI 
     np.save(BASE_PATH+"active_epoched_traces.npy",active_epoched_traces) # save the trace for trial before it's formatted into a dictionary
 

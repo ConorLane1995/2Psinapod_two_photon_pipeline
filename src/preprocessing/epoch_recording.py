@@ -5,15 +5,12 @@ OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
 AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
 """
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-from itertools import compress
 import scipy.io as scio
 import numpy as np
 import os
 import pickle
 import json
-import math
 
 
 # load what we need from the config file
@@ -233,13 +230,6 @@ def main():
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
 
-    # DELETE LATER
-    # stimulus_onset_frames = stimulus_onset_frames[1:]
-    # conditions = conditions[:-1]
-
-    # stimulus_onset_frames = stimulus_onset_frames[:-1]#[1:]#[:-1] # remove the last element
-    # conditions = conditions[1:] # remove first trial label
-
     print(np.unique(conditions[:,0]))
     print(np.unique(conditions[:,1]))
 
@@ -251,20 +241,31 @@ def main():
 
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_trace(fluo_in_cells,stimulus_onset_frames)
-    epoched_traces_all = epoch_trace(corrected_fluo,stimulus_onset_frames)
+    # epoched_traces_all = epoch_trace(corrected_fluo,stimulus_onset_frames)
 
     np.save(BASE_PATH+"raw_corrected_traces.npy",fluo_in_cells) # save the trace for each cell ROI 
     np.save(BASE_PATH+"epoched_traces.npy",epoched_traces) # save the trace for trial before it's formatted into a dictionary
     np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames) # save the list of trigger frames (trial onsets)
 
-    np.save(BASE_PATH+"raw_corrected_traces_all.npy",corrected_fluo) # save the trace for each cell ROI 
-    np.save(BASE_PATH+"epoched_traces_all.npy",epoched_traces_all) # save the trace for trial before it's formatted into a dictionary
+    # collect some information about the stim to access later on if we want
+    recording_info = dict()
+    recording_info['frequencies'] = np.unique(conditions[:,0])
+    recording_info['intensities'] = np.unique(conditions[:,1])
+    recording_info['nRepeats'] = np.count_nonzero(np.logical_and(conditions[:,0]==recording_info['frequencies'][0],conditions[:,1] == recording_info['intensities'][0]))
+    recording_info['nTrials'] = len(conditions)
+
+    # np.save(BASE_PATH+"raw_corrected_traces_all.npy",corrected_fluo) # save the trace for each cell ROI 
+    # np.save(BASE_PATH+"epoched_traces_all.npy",epoched_traces_all) # save the trace for trial before it's formatted into a dictionary
 
     dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
 
     # save to the provided output path
     with open(BASE_PATH+output_path,'wb') as f:
         pickle.dump(dictionary_of_cells,f)
+
+    # save the recording information 
+    with open(BASE_PATH+"recording_info.pkl",'wb') as f:
+        pickle.dump(recording_info,f)
 
 if __name__=='__main__':
     main()
