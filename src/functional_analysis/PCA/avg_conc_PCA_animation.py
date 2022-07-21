@@ -53,7 +53,7 @@ def add_orientation_legend(ax,trial_types):
 
 
 def main():
-    data = np.load("/media/vtarka/USB DISK/Lab/2P/epoched_traces217.npy")
+    data = np.load("/media/vtarka/USB DISK/Lab/2P/active_epoched_traces217.npy")
     conditions_mat = loadmat("/media/vtarka/USB DISK/Lab/2P/ID112_050722_PrePsilo_1.mat") # conditition type of each trial in chronological order (row 1 = trial 1)
     conditions = conditions_mat["stim_data"]
 
@@ -126,6 +126,77 @@ def main():
     axes[1].set_xlabel('Time (s)')
     sns.despine(right=True, top=True)
     add_orientation_legend(axes[2],trial_types)
+    # plt.show()
+
+    # import the animation and the HTML module to create and render the animation
+    from matplotlib import animation 
+    from IPython.display import HTML
+
+    time = range(15)
+
+    # smooth the single projected trials 
+    for i in range(len(projected_trials)):
+        for c in range(projected_trials[0].shape[0]):
+            projected_trials[i][c, :] = projected_trials[i][c, :]#gaussian_filter1d(projected_trials[i][c, :], sigma=1)
+
+    # for every time point (imaging frame) get the position in PCA space of every trial
+    pca_frame = []
+    for t in range(trial_size):
+        # projected data for all trials at time t 
+        Xp = np.hstack([tr[:, None, t] for tr in projected_trials]).T
+        pca_frame.append(Xp)
+        
+    subspace = (0,2) # pick the subspace given by the second and third components
+        
+    # set up the figure
+    fig, ax = plt.subplots(1, 1, figsize=[6, 6]); plt.close()
+    ax.set_xlim(( -16, 16))
+    ax.set_ylim((-16, 16))
+    ax.set_xlabel('PC 2')
+    ax.set_xticks([-10, 0, 10])
+    ax.set_yticks([-10, 0, 10])
+    ax.set_ylabel('PC 3')
+    sns.despine(fig=fig, top=True, right=True)
+
+    # generate empty scatter plot to be filled by data at every time point
+    scatters = []
+    for t, t_type in enumerate(trial_types):
+        scatter, = ax.plot([], [], 'o', lw=2, color=pal[t])
+        scatters.append(scatter)
+
+    # red dot to indicate when stimulus is being presented
+    stimdot, = ax.plot([], [], 'o', c='r', markersize=35, alpha=0.5)
+
+    # annotate with stimulus and time information
+    text     = ax.text(6.3, 9, 'Stimulus OFF \nt = {:.2f}'.format(time[0]), fontdict={'fontsize':14})
+
+    # this is the function to be called at every animation frame
+    def animate(i):
+        for t, t_type in enumerate(trial_types):
+            # find the x and y position of all trials of a given type
+            x = pca_frame[i][t_type_ind[t], subspace[0]]
+            y = pca_frame[i][t_type_ind[t], subspace[1]]
+            # update the scatter
+            scatters[t].set_data(x, y)
+            
+        # update stimulus and time annotation
+        if (i > 4) and (i < (trial_size+1)):
+            stimdot.set_data(10, 14)
+            text.set_text('Stimulus ON \nt = {:.2f}'.format(time[i]))
+        else:
+            stimdot.set_data([], [])
+            text.set_text('Stimulus OFF \nt = {:.2f}'.format(time[i]))
+        return (scatter,)
+
+    # generate the animation
+    anim = animation.FuncAnimation(fig, animate, 
+                                frames=len(pca_frame), interval=1000,
+                                blit=True)
+
+    anim.save('PCA.mp4',fps=1) #, extra_args=['-vcodec','libx264'])
+    plt.show()
+
+    HTML(anim.to_jshtml()) # render animation
     plt.show()
 
 

@@ -28,7 +28,6 @@ def re_epoch_data(data,n_trials):
     return nxtxf_data
 
 
-
 shade_alpha      = 0.2
 lines_alpha      = 0.8
 pal = sns.color_palette('rocket', 13)
@@ -78,60 +77,90 @@ def main():
         trial_type.append(row[0])
 
     trial_types = np.unique(conditions[:,0])
+    trial_size   = trials[0].shape[1]
 
     t_type_ind = [np.argwhere(np.array(trial_type) == t_type)[:, 0] for t_type in trial_types]
-
-
+   
+    # prepare trial averages
     trial_averages = []
     for ind in t_type_ind:
         trial_averages.append(np.array(trials)[ind].mean(axis=0))
     Xa = np.hstack(trial_averages)
 
-    n_components = 15
-    Xa = standardize(Xa) #Xav_sc = center(Xav)
-    pca = PCA(n_components=n_components)
+    # standardize and apply PCA
+    Xa = standardize(Xa) 
+    pca = PCA(n_components=3)
     Xa_p = pca.fit_transform(Xa.T).T
 
-    trial_size   = trials[0].shape[1]
+    # pick the components corresponding to the x, y, and z axes
+    component_x = 0
+    component_y = 1
+    component_z = 2
 
-    fig, axes = plt.subplots(1, 3, figsize=[10, 2.8], sharey='row')
-    for comp in range(3):
-        ax = axes[comp]
-        for kk, type in enumerate(trial_types):
-            x = Xa_p[comp, kk * trial_size :(kk+1) * trial_size]
-            x = gaussian_filter1d(x, sigma=3)
-            ax.plot(range(15), x, c=pal[kk])
-        add_stim_to_plot(ax)
-        ax.set_ylabel('PC {}'.format(comp+1))
-    add_orientation_legend(axes[2],trial_types)
-    axes[1].set_xlabel('Time (s)')
-    sns.despine(fig=fig, right=True, top=True)
-    plt.tight_layout(rect=[0, 0, 0.9, 1])
-    # plt.show()
+    # create a boolean mask so we can plot activity during stimulus as 
+    # solid line, and pre and post stimulus as a dashed line
+    stim_mask = ~np.logical_and(np.arange(trial_size) >= 5,
+                np.arange(trial_size) < (trial_size+1))
 
-    # find the indices of the three largest elements of the second eigenvector
-    units = np.abs(pca.components_[1, :].argsort())[::-1][0:3]
+    # utility function to clean up and label the axes
+    def style_3d_ax(ax):
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_zticks([])
+        ax.xaxis.pane.fill = False
+        ax.yaxis.pane.fill = False
+        ax.zaxis.pane.fill = False
+        ax.xaxis.pane.set_edgecolor('w')
+        ax.yaxis.pane.set_edgecolor('w')
+        ax.zaxis.pane.set_edgecolor('w')
+        ax.set_xlabel('PC 1')
+        ax.set_ylabel('PC 2')
+        ax.set_zlabel('PC 3')
 
-    f, axes = plt.subplots(1, 3, figsize=[10, 2.8], sharey=False,
-                        sharex=True)
-    for ax, unit in zip(axes, units):
-        ax.set_title('Neuron {}'.format(unit))
-        for t, ind in enumerate(t_type_ind):
-            x = np.array(trials)[ind][:, unit, :]
-            tmp = np.mean(x,axis=0)
-            sns.lineplot(x=range(15),y=np.mean(x,axis=0),
-                    ax=ax,
-                    err_style='band',
-                    ci="sd",
-                    color=pal[t])
-    for ax in axes:
-        add_stim_to_plot(ax)
-    axes[1].set_xlabel('Time (s)')
-    sns.despine(fig=f, right=True, top=True)
-    add_orientation_legend(axes[2],trial_types)
+    sigma = 2 # smoothing amount
+
+    # set up a figure with two 3d subplots, so we can have two different views
+    fig = plt.figure(figsize=[9, 4])
+    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+    ax2 = fig.add_subplot(1, 2, 2, projection='3d')
+    axs = [ax1, ax2]
+
+    for ax in axs:
+        for t, t_type in enumerate(trial_types):
+
+            # for every trial type, select the part of the component
+            # which corresponds to that trial type:
+            x = Xa_p[component_x, t * trial_size :(t+1) * trial_size]
+            y = Xa_p[component_y, t * trial_size :(t+1) * trial_size]
+            z = Xa_p[component_z, t * trial_size :(t+1) * trial_size]
+            
+            # apply some smoothing to the trajectories
+            x = gaussian_filter1d(x, sigma=sigma)
+            y = gaussian_filter1d(y, sigma=sigma)
+            z = gaussian_filter1d(z, sigma=sigma)
+
+            # use the mask to plot stimulus and pre/post stimulus separately
+            z_stim = z.copy()
+            z_stim[stim_mask] = np.nan
+            z_stim[4] = z[4]
+            z_prepost = z.copy()
+            z_prepost[~stim_mask] = np.nan
+
+            ax.plot(x, y, z_stim, c = pal[t])
+            ax.plot(x, y, z_prepost, c=pal[t], ls=':')
+            
+            # plot dots at initial point
+            ax.scatter(x[0], y[0], z[0], c=pal[t], s=14)
+            
+            # make the axes a bit cleaner
+            style_3d_ax(ax)
+            
+    # specify the orientation of the 3d plot        
+    ax1.view_init(elev=22, azim=30)
+    ax2.view_init(elev=22, azim=110)
+    plt.tight_layout()
+    add_orientation_legend(ax1,trial_types)
     plt.show()
-
-
 
 
 if __name__=="__main__":
