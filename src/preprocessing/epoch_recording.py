@@ -2,6 +2,9 @@
 Script to take the files produced from the Suite2P preprocessing software and epoch the recording into trials.
 INPUT: stim triggers in csv, Suite2P files (F.npy, Fneu.npy, iscell.npy)
 OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
+        onsets.npy - list of frames where triggers occured
+        raw_corrected_traces.npy - nNeurons x nFrames fluorescence traces (not epoched)
+        cell_dictionary (.pkl) - dictionary of each cell ROI with epoched traces stored in {'traces' {freq {intensity {repetition}}}}
 AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
 """
 

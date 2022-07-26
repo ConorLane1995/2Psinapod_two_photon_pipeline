@@ -1,5 +1,5 @@
 {
-  "RepoDir": "/home/bic/vtarka/2Psinapod/",
+  "RepoDir": "/home/bic/vtarka/2Psinapod/", 
   "RecordingFolder": "/media/vtarka/USB DISK/Lab/2P/Vid_205/",
   "Triggers": "TSeries-06202022-1421-205_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,

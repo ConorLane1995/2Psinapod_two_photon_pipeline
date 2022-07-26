@@ -1,5 +1,5 @@
 """
-Script to take the files produced from the Suite2P preprocessing software and epoch the recording into trials.
+Script to take the files produced from the Suite2P preprocessing software and format for remainder of the analysis.
 INPUT: stim triggers in csv, Suite2P files (F.npy, Fneu.npy, iscell.npy)
 OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
 AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
