@@ -51,8 +51,8 @@ def add_orientation_legend(ax,trial_types):
 
 
 def main():
-    data = np.load("/media/vtarka/USB DISK/Lab/2P/epoched_traces217.npy")
-    conditions_mat = loadmat("/media/vtarka/USB DISK/Lab/2P/ID112_050722_PrePsilo_1.mat") # conditition type of each trial in chronological order (row 1 = trial 1)
+    data = np.load("/media/vtarka/USB DISK/Lab/2P/active_epoched_traces220.npy")
+    conditions_mat = loadmat("/media/vtarka/USB DISK/Lab/2P/ID112_070522_PostPsilo_1.mat") # conditition type of each trial in chronological order (row 1 = trial 1)
     conditions = conditions_mat["stim_data"]
 
     # reformat from n x t x f array to n x t array (concatenate trials)

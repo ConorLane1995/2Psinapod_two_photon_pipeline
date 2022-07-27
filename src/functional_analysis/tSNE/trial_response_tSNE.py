@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from scipy.ndimage.filters import gaussian_filter1d
 from matplotlib.lines import Line2D
@@ -80,11 +81,12 @@ def main():
     Xr = np.vstack([t[:,4:].mean(axis=1) for t in trials]).T
     Xr_sc = standardize(Xr)
 
-    tsne = TSNE(n_components=3)
+    pca = PCA(n_components=10)
+    Xpca = pca.fit_transform(Xr_sc.T).T
+    print(np.sum(pca.explained_variance_ratio_))
+
+    tsne = TSNE(n_components=3,perplexity=50)
     Xp = tsne.fit_transform(Xr_sc.T).T
-    
-    plt.scatter(Xp[:,0],Xp[:,1])
-    plt.show()
 
     total_points = 0
     projections = [(0, 1), (1, 2), (0, 2)]
@@ -97,8 +99,8 @@ def main():
             print(len(x[0]))
             total_points += len(x[0])
             ax.scatter(x, y, c=pal[t], s=30, alpha=0.7)
-            ax.set_xlabel('PC {}'.format(proj[0]+1))
-            ax.set_ylabel('PC {}'.format(proj[1]+1))
+            ax.set_xlabel('tSNE {}'.format(proj[0]+1))
+            ax.set_ylabel('tSNE {}'.format(proj[1]+1))
 
         print(total_points)
         total_points = 0
