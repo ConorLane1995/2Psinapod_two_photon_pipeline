@@ -11,8 +11,6 @@ from scipy.stats import zscore
 import json
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)) + '../../')
-from utils import get_avg_trace
 
 # load what we need from the config file
 with open(os.path.abspath(os.path.dirname(__file__)) +'/../../config.json','r') as f:
@@ -27,6 +25,33 @@ EPOCH_END_IN_MS = config['EpochEnd']
 
 STD_THRESHOLD = 3 # number of standard deviations from baseline the peak response must be in order for the cell to be considered active
 ZSCORE_THRESHOLD = 2 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
+
+def get_avg_trace(cell_trace):
+    # cell_trace is going to be all the trials of this one cell
+    # {freq: intensity: repetition: trace = [x,x,x,x,...]}}}
+
+    # first we need to find how much space to allocate
+    n_samples = 0
+    n_trials = 0
+    for freq in cell_trace:
+        for intensity in cell_trace[freq]:
+            for repetition in cell_trace[freq][intensity]:
+                if n_trials == 0:
+                    n_samples = len(cell_trace[freq][intensity][repetition])
+                n_trials += 1
+              
+    summed_traces = np.zeros(shape=(n_trials,n_samples))
+
+    counter = 0
+    # let's get a sum of all our traces to average later
+    for freq in cell_trace:
+        for intensity in cell_trace[freq]:
+            for repetition in cell_trace[freq][intensity]:
+                summed_traces[counter,:] = cell_trace[freq][intensity][repetition]
+                counter += 1
+
+    return np.median(summed_traces,axis=0)
+
 
 """
 Check whether a cell is responsive based on number of STDs the peak is from baseline

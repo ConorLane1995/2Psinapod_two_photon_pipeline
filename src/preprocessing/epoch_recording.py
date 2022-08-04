@@ -8,7 +8,6 @@ OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
 AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
 """
 
-import matplotlib.pyplot as plt
 import scipy.io as scio
 import numpy as np
 import os

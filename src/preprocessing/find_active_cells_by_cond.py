@@ -21,7 +21,7 @@ OUTPUT_FILE = TRACES_FILE
 FRAMERATE = config['RecordingFR']
 EPOCH_START_IN_MS = config['EpochStart']
 
-ZSCORE_THRESHOLD = 3 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
+ZSCORE_THRESHOLD = 2 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
 
 """
 Redefine trial activity as z-scores relative to the baseline frames immediately preceding the stimulus

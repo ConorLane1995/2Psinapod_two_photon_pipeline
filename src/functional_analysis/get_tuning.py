@@ -457,7 +457,7 @@ def plot_tuning_curves(cell_dictionary):
         #     counter += 1
         #     continue
 
-        cell_tuning = cell_dictionary[cell]['tuning_curve_peak']
+        cell_tuning = cell_dictionary[cell]['tuning']
         smooth_cell_tuning = gaussian_filter(cell_tuning,1)
         counter += 25
         im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='winter',origin='lower')
@@ -497,7 +497,7 @@ def plot_single_tuning_curve(cell_dictionary,cell_IDX):
     cell_IDs = list(cell_dictionary.keys())
     cell_of_interest_ID = cell_IDs[cell_IDX]
 
-    cell_tuning = cell_dictionary[cell_of_interest_ID]['tuning_curve_peak']
+    cell_tuning = cell_dictionary[cell_of_interest_ID]['tuning']
 
     im = plt.imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
     plt.colorbar(im)
