@@ -1,24 +1,28 @@
-from cmath import sqrt
-from time import time
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+"""
+INPUT:
+OUTPUT:
+AUTHOR: Veronica Tarka, May 2022, veronica.tarka@mail.mcgill.ca
+"""
+
 from scipy.ndimage import gaussian_filter
+import matplotlib.pyplot as plt
+from cmath import sqrt
+import numpy as np
 import pickle
-import sys
 import json
+import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + '/../')
 from utils import get_active_cells
-from scipy.stats import zscore
 
 # load what we need from the config file
 with open(os.path.abspath(os.path.dirname(__file__)) +'/../../config.json','r') as f:
     config = json.load(f)
 
 BASE_PATH = config['RecordingFolder']
-cell_dictionary_file = config['AnalysisFile']
-cell_dictionary_file_out = cell_dictionary_file
+CELL_DICT_FILE = config['AnalysisFile']
+CELL_DICT_FILE_OUT = CELL_DICT_FILE
 EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
@@ -503,42 +507,42 @@ def plot_single_tuning_curve(cell_dictionary,cell_IDX):
     ax.set_yticklabels(intensity_labels)
     plt.show()
 
-
+"""
+Add tuning information to the big dictionary for each cell
+@param cell_dictionary: the big cell dictionary where each cell is a key holding sub dictionaries
+@return cell_dictionary: same big dictionary with new key 'tuning' holding the tuning information for each cell
+"""
 def get_tuning_curves(cell_dictionary):
     # for each cell, we want to add a key so our dictionary now looks like this
-    # cell { traces { .... }
-    #        active = T/F
-    #        tuning_curve = [x,x,x,x,x,...] 
+    # cell { 'traces' { .... }
+    #        'active' = T/F
+    #        'tuning' = [[x,x,x,x,x,...] 
+    #                   [[x,x,x,x,x,...]...]
     # }
     # where tuning curve holds the average peak activity for that specific frequency 
 
-    counter = 0
     for cell in cell_dictionary:
-        if counter == CELL_OF_INTEREST:
-            cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
-            print(cell)
+        if cell == CELL_OF_INTEREST:
+            cell_dictionary[cell]['tuning'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],True)
         else:
-            cell_dictionary[cell]['tuning_curve_peak'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
+            cell_dictionary[cell]['tuning'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
         
-        counter+=1
-
     return cell_dictionary
 
 
 def main():
 
-    with open(BASE_PATH + cell_dictionary_file, 'rb') as f:
+    # load the dictionary file
+    with open(BASE_PATH + CELL_DICT_FILE, 'rb') as f:
         cell_dictionary = pickle.load(f)
     
-    active_cell_dictionary = get_active_cells(cell_dictionary)
-    cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary)
-    active_cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
+    active_cell_dictionary = get_active_cells(cell_dictionary) # get only the cells that are active
+    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
 
-    plot_tuning_curves(active_cell_dictionary_with_tuning)
-    # plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    plot_tuning_curves(cell_dictionary_with_tuning)
+    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
 
-
-    with open(BASE_PATH+cell_dictionary_file_out,'wb') as f:
+    with open(BASE_PATH+CELL_DICT_FILE_OUT,'wb') as f:
         pickle.dump(cell_dictionary_with_tuning,f)
 
 
