@@ -1,12 +1,11 @@
 """
-INPUT:
-OUTPUT:
+Script to estimate each cells' response to each frequency x intensity combination through three different methods (peak, z-score, avging)
+Adds the tuning estimates into the big dictionary under the key 'tuning'
+INPUT: cell_dictionary.pkl, recording_info.pkl
+OUTPUT: cell_dictionary.pkl now with a key 'tuning' with response estimates to the stim types
 AUTHOR: Veronica Tarka, May 2022, veronica.tarka@mail.mcgill.ca
 """
-
-from scipy.ndimage import gaussian_filter
 import matplotlib.pyplot as plt
-from cmath import sqrt
 import numpy as np
 import pickle
 import json
@@ -27,67 +26,99 @@ EPOCH_START_IN_MS = config['EpochStart']
 EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 1
+CELL_OF_INTEREST = 30
 
-def get_cell_tuning_by_peak(cell_traces,plot_TF):
-
-    if plot_TF:
-        fig,axs = plt.subplots(7,9)
-        # axs = axs.ravel()
+"""
+Estimate cell's response to each frequency/intensity combination by taking the peak of the average trial response for a single condition type.
+@param cell_traces: the contents of the 'traces' key for a single cell in the big dictionary (formatting in more details within the function)
+@return tuning_curve: an nFrequency x nIntensity array where each element represents the response estimate for that frequency and intensity combination
+                        where tuning_curve[0,0] is the response to the lowest frequency and smallest intensity
+"""
+def get_cell_tuning_by_peak(cell_traces):
 
     # cell_traces is a dictionary of frequencies 
+    # freq_f{
+    #    itsy_i{
+    #       rep_r{
+    #           [x,x,x,x,...]}}}
     # under each frequency is a dictionary of intensities
     # under each intensity are the traces for each repetitiong of that frequency/intensity combination
 
     # allocate some space to return
     # we want a matrix that is nFrequencies x nIntensities 
-    tuning_curves = np.empty((len(cell_traces),len(cell_traces[next(iter(cell_traces))].keys())))
+    tuning_curve = np.empty((len(cell_traces),len(cell_traces[next(iter(cell_traces))].keys())))
 
-    n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1
+    n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1 # number of frames in the trial epoch to consider as baseline (pre stimulus)
 
-    plot_coln_counter = 0
     frequency_counter = 0 # to keep track of where we're indexing the empty array
     for freq in cell_traces:
-
         intensity_counter = 0
 
-        # find the number of intensities we presented at
-        n_intensities = len(cell_traces[freq].keys())
-
-        # make a temporary vector to append to the tuning curve at the end of this loop
-        # we will fill one n_intensities length column of the 2D matrix we are returning
-        activation_per_intensity = np.empty((n_intensities,1))
-
         # iterate through each intensity the frequency was presented at
-        plot_row_counter = 0
         for intensity in cell_traces[freq]:
 
             # collect all the trials of this one frequency presented at this one intensity
             # it will be an nTrials x nFrames matrix
             all_trials_of_this_intensity = []
-            n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1
+
             # iterate through each trial of this frequency/intensity combination
-            counter=0
             for trial in cell_traces[freq][intensity]:
                 
-                # if plot_TF:
-                #     plt.plot(cell_traces[freq][intensity][trial][n_baseline_frames:])
-
-                counter+=1
                 trace = cell_traces[freq][intensity][trial]
-                # print(trace)
-                # input()
-                # baseline = trace[0:n_baseline_frames]
-                # baseline_mean = np.average(baseline)
-                # baseline_std = np.std(baseline)
-
-                # zscorer = lambda x: (x-baseline_mean)/baseline_std
-
-                # response = trace[n_baseline_frames:]
-                # zscore_response = np.array([zscorer(xi) for xi in response])
                 all_trials_of_this_intensity.append(trace)
 
-            # plt.show()
+            # convert the matrix of trials into a np array
+            all_trials_as_np = np.array(all_trials_of_this_intensity)
+
+            # average across all the trials to get a 1 x nFrames vector
+            average_trial_of_this_intensity = np.average(all_trials_as_np, axis=0)
+            response = average_trial_of_this_intensity[n_baseline_frames:]
+
+            peak_response = np.amax(response) # get the peak of the average response
+            tuning_curve[frequency_counter,intensity_counter] = peak_response
+
+            intensity_counter += 1 # go to the next intensity
+        
+        frequency_counter += 1 # go to the next frequency
+   
+    return tuning_curve
+
+"""
+Estimate cell's response to each frequency/intensity combination by taking the averaging across the average trial response for a single condition type.
+@param cell_traces: the contents of the 'traces' key for a single cell in the big dictionary (formatting in more details within the function)
+@return tuning_curve: an nFrequency x nIntensity array where each element represents the response estimate for that frequency and intensity combination
+                        where tuning_curve[0,0] is the response to the lowest frequency and smallest intensity
+"""
+def get_cell_tuning_by_avg(cell_traces):
+
+    # cell_traces is a dictionary of frequencies 
+    # freq_f{
+    #    itsy_i{
+    #       rep_r{
+    #           [x,x,x,x,...]}}}
+    # under each frequency is a dictionary of intensities
+    # under each intensity are the traces for each repetitiong of that frequency/intensity combination
+
+    # allocate some space to return
+    # we want a matrix that is nFrequencies x nIntensities 
+    tuning_curve = np.empty((len(cell_traces),len(cell_traces[next(iter(cell_traces))].keys())))
+
+    n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1 # number of frames at the start of the trial epoch to consider baseline (before trial onset)
+
+    frequency_counter = 0 # to keep track of where we're indexing the empty array
+    for freq in cell_traces:
+        intensity_counter = 0
+
+        # iterate through each intensity the frequency was presented at
+        for intensity in cell_traces[freq]:
+
+            # collect all the trials of this one frequency presented at this one intensity
+            # it will be an nTrials x nFrames matrix
+            all_trials_of_this_intensity = []
+            # iterate through each trial of this frequency/intensity combination
+            for trial in cell_traces[freq][intensity]:
+                trace = cell_traces[freq][intensity][trial]
+                all_trials_of_this_intensity.append(trace)
 
             # convert the matrix of trials into a np array
             all_trials_as_np = np.array(all_trials_of_this_intensity)
@@ -95,242 +126,74 @@ def get_cell_tuning_by_peak(cell_traces,plot_TF):
             # average across all the trials to get a 1 x nFrames vector
             average_trial_of_this_intensity = np.average(all_trials_as_np, axis=0)
 
-            # now we grab the peak of the trace occuring AFTER the onset
-            
-            # baseline = average_trial_of_this_intensity[0:n_baseline_frames]
-            # baseline_mean = np.average(baseline)
-            # baseline_std = np.std(baseline)
-
-            # zscorer = lambda x: (x-baseline_mean)/baseline_std
-
-            # response = average_trial_of_this_intensity[n_baseline_frames:]
-            # zscore_response = np.array([zscorer(xi) for xi in response])
+            # take the frames of the trial occuring only after the stimulus onset
             response = average_trial_of_this_intensity[n_baseline_frames:]
 
-            if plot_TF:
-                error = []
-                for timepoint in range(len(all_trials_as_np[0])):
-                    if timepoint<n_baseline_frames:
-                        continue
+            avg_response = np.average(response) # take the average of the average response
+            tuning_curve[frequency_counter,intensity_counter] = avg_response
 
-                    timepoint_std = np.std(all_trials_as_np[:,timepoint])
-                    timepoint_se = timepoint_std/sqrt(len(all_trials_as_np[:,timepoint]))
-                    error.append(timepoint_se)
+            intensity_counter += 1 # progress to the next intensity
 
-            if plot_TF:
-                # print(len(error))
-                # print(len(response))
-                axs[6-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[6-plot_row_counter,plot_coln_counter].axvline(x=4,color='k',linestyle='--')
-                # axs[plot_row_counter,plot_coln_counter].plot(response)
-                # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[6-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[6-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[6-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[6-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
-                # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
+        frequency_counter += 1 # progress to the next frequency
 
-            # zscore_response = zscore(response)
-            peak_response = np.amax(response)
-            # peak_response = np.amax(response)
-            # peak_response = np.trapz(response)
-            tuning_curves[frequency_counter,intensity_counter] = peak_response
+    return tuning_curve
 
-            intensity_counter += 1
-            # print(freq)
-            # print(intensity)
-            plot_row_counter += 1
-
-        plot_coln_counter += 1
-        frequency_counter += 1
-    
-    if plot_TF:
-        fig.subplots_adjust(wspace=0,hspace=0)
-        plt.show()
-    return tuning_curves
-
-def get_cell_tuning_by_avg(cell_traces,plot_TF):
-
-    if plot_TF:
-        fig,axs = plt.subplots(7,9)
-        # axs = axs.ravel()
-
+"""
+Estimate cell's response to each frequency/intensity combination by z-scoring each trial relative to 5 frames before baseline,
+then taking the average of each z-scored trial for a single condition (x frequency and y intensity). 
+The peak of the average z-scored trial is the response estimate.
+@param cell_traces: the contents of the 'traces' key for a single cell in the big dictionary (formatting in more details within the function)
+@return tuning_curve: an nFrequency x nIntensity array where each element represents the response estimate for that frequency and intensity combination
+                        where tuning_curve[0,0] is the response to the lowest frequency and smallest intensity
+"""
+def get_cell_tuning_by_zscore(cell_traces):
     # cell_traces is a dictionary of frequencies 
+    # freq_f{
+    #    itsy_i{
+    #       rep_r{
+    #           [x,x,x,x,...]}}}
     # under each frequency is a dictionary of intensities
     # under each intensity are the traces for each repetitiong of that frequency/intensity combination
 
     # allocate some space to return
     # we want a matrix that is nFrequencies x nIntensities 
-    tuning_curves = np.empty((len(cell_traces),len(cell_traces[next(iter(cell_traces))].keys())))
+    tuning_curve = np.empty((len(cell_traces),len(cell_traces[next(iter(cell_traces))].keys())))
 
+    # get the number of frames we will use to estimate the baseline activity (frames immediately before trial onset)
     n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1
 
-    plot_coln_counter = 0
     frequency_counter = 0 # to keep track of where we're indexing the empty array
     for freq in cell_traces:
 
         intensity_counter = 0
 
-        # find the number of intensities we presented at
-        n_intensities = len(cell_traces[freq].keys())
-
-        # make a temporary vector to append to the tuning curve at the end of this loop
-        # we will fill one n_intensities length column of the 2D matrix we are returning
-        activation_per_intensity = np.empty((n_intensities,1))
-
         # iterate through each intensity the frequency was presented at
-        plot_row_counter = 0
         for intensity in cell_traces[freq]:
-
-            # collect all the trials of this one frequency presented at this one intensity
+            # collect all the z-scored trials of this one frequency presented at this one intensity
             # it will be an nTrials x nFrames matrix
             all_trials_of_this_intensity = []
-            n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1
+
             # iterate through each trial of this frequency/intensity combination
             counter=0
             for trial in cell_traces[freq][intensity]:
                 
-                # if plot_TF:
-                #     plt.plot(cell_traces[freq][intensity][trial][n_baseline_frames:])
-
-                counter+=1
-                trace = cell_traces[freq][intensity][trial]
-                # print(trace)
-                # input()
-                # baseline = trace[0:n_baseline_frames]
-                # baseline_mean = np.average(baseline)
-                # baseline_std = np.std(baseline)
-
-                # zscorer = lambda x: (x-baseline_mean)/baseline_std
-
-                # response = trace[n_baseline_frames:]
-                # zscore_response = np.array([zscorer(xi) for xi in response])
-                all_trials_of_this_intensity.append(trace)
-
-            # plt.show()
-
-            # convert the matrix of trials into a np array
-            all_trials_as_np = np.array(all_trials_of_this_intensity)
-
-            # average across all the trials to get a 1 x nFrames vector
-            average_trial_of_this_intensity = np.average(all_trials_as_np, axis=0)
-
-            # now we grab the peak of the trace occuring AFTER the onset
-            
-            # baseline = average_trial_of_this_intensity[0:n_baseline_frames]
-            # baseline_mean = np.average(baseline)
-            # baseline_std = np.std(baseline)
-
-            # zscorer = lambda x: (x-baseline_mean)/baseline_std
-
-            # response = average_trial_of_this_intensity[n_baseline_frames:]
-            # zscore_response = np.array([zscorer(xi) for xi in response])
-            response = average_trial_of_this_intensity[n_baseline_frames:]
-
-            if plot_TF:
-                error = []
-                for timepoint in range(len(all_trials_as_np[0])):
-                    if timepoint<n_baseline_frames:
-                        continue
-
-                    timepoint_std = np.std(all_trials_as_np[:,timepoint])
-                    timepoint_se = timepoint_std/sqrt(len(all_trials_as_np[:,timepoint]))
-                    error.append(timepoint_se)
-
-            if plot_TF:
-                # print(len(error))
-                # print(len(response))
-                axs[6-plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                axs[6-plot_row_counter,plot_coln_counter].axvline(x=4,color='k',linestyle='--')
-                # axs[plot_row_counter,plot_coln_counter].plot(response)
-                # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[6-plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[6-plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[6-plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[6-plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=500)
-                # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
-
-            # zscore_response = zscore(response)
-            avg_response = np.average(response)
-            # peak_response = np.amax(response)
-            # peak_response = np.trapz(response)
-            tuning_curves[frequency_counter,intensity_counter] = avg_response
-
-            intensity_counter += 1
-            # print(freq)
-            # print(intensity)
-            plot_row_counter += 1
-
-        plot_coln_counter += 1
-        frequency_counter += 1
-    
-    if plot_TF:
-        fig.subplots_adjust(wspace=0,hspace=0)
-        plt.show()
-    return tuning_curves
-
-def get_cell_tuning_by_zscore(cell_traces,plot_TF):
-
-    if plot_TF:
-        fig,axs = plt.subplots(4,12)
-        # axs = axs.ravel()
-
-    # cell_traces is a dictionary of frequencies 
-    # under each frequency is a dictionary of intensities
-    # under each intensity are the traces for each repetitiong of that frequency/intensity combination
-
-    # allocate some space to return
-    # we want a matrix that is nFrequencies x nIntensities 
-    tuning_curves = np.empty((len(cell_traces),len(cell_traces[next(iter(cell_traces))].keys())))
-
-    n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1
-
-    plot_coln_counter = 0
-    frequency_counter = 0 # to keep track of where we're indexing the empty array
-    for freq in cell_traces:
-        intensity_counter = 0
-
-        # find the number of intensities we presented at
-        n_intensities = len(cell_traces[freq].keys())
-
-        # make a temporary vector to append to the tuning curve at the end of this loop
-        # we will fill one n_intensities length column of the 2D matrix we are returning
-        activation_per_intensity = np.empty((n_intensities,1))
-
-        # iterate through each intensity the frequency was presented at
-        plot_row_counter = 0
-        for intensity in cell_traces[freq]:
-            # collect all the trials of this one frequency presented at this one intensity
-            # it will be an nTrials x nFrames matrix
-            all_trials_of_this_intensity = []
-            n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)*-1
-            # iterate through each trial of this frequency/intensity combination
-            counter=0
-            for trial in cell_traces[freq][intensity]:
-                
-                # if plot_TF:
-                    # plt.plot(cell_traces[freq][intensity][trial])#[n_baseline_frames:])
-
                 counter+=1
                 trace = cell_traces[freq][intensity][trial]
 
-                baseline = trace[0:n_baseline_frames]
+                baseline = trace[:n_baseline_frames]
+                # get the mean and standard deviation of the baseline activity so we can z-score against it
                 baseline_mean = np.average(baseline)
                 baseline_std = np.std(baseline)
 
+                # make our z-scoring function
                 if baseline_std!=0:
                     zscorer = lambda x: (x-baseline_mean)/baseline_std
                 else:
                     zscorer = lambda x: x-baseline_mean
 
-
-                response = trace[n_baseline_frames:]
-                zscore_response = np.array([zscorer(xi) for xi in response])
-                # print(zscore_response)
-                # input()
+                response = trace[n_baseline_frames:] # grab the post-stimulus frames from the trial epoch
+                zscore_response = np.array([zscorer(xi) for xi in response]) # z-score the response
                 all_trials_of_this_intensity.append(zscore_response)
-
-            # plt.show()
 
             # convert the matrix of trials into a np array
             all_trials_as_np = np.array(all_trials_of_this_intensity)
@@ -339,172 +202,121 @@ def get_cell_tuning_by_zscore(cell_traces,plot_TF):
             average_trial_of_this_intensity = np.average(all_trials_as_np, axis=0)
 
             # now we grab the peak of the trace occuring AFTER the onset
-            
-            # baseline = average_trial_of_this_intensity[0:n_baseline_frames]
-            # baseline_mean = np.average(baseline)
-            # baseline_std = np.std(baseline)
+            peak_response = np.amax(average_trial_of_this_intensity)
+            tuning_curve[frequency_counter,intensity_counter] = peak_response
 
-            # zscorer = lambda x: (x-baseline_mean)/baseline_std
+            intensity_counter += 1 # move to the next intensity
 
-            # response = average_trial_of_this_intensity[n_baseline_frames:]
-            # zscore_response = np.array([zscorer(xi) for xi in response])
+        frequency_counter += 1 # move to the next frequency
 
-            response = average_trial_of_this_intensity#[n_baseline_frames:]
+    return tuning_curve
 
-            if plot_TF:
-                error = []
-                for timepoint in range(len(all_trials_as_np[0])):
-                    if timepoint<n_baseline_frames:
-                        continue
+"""
+Show a plot containing the tuning heatmaps for the first 25 active cells in this recording, each subplot title is the cell ID
+@param cell_dictionary: the big cell dictionar, with key 'tuning' containing the tuning curves
+@param frequencies: each frequency that was presented during the recording in ascending order
+@param intensities: each intensity that was presented during the recording in ascending order
+"""
+def plot_tuning_curves(cell_dictionary,frequencies,intensities):
+    frequencies = np.round(frequencies / 1000) # convert to kHz
+    frequencies = np.array([int(f) for f in frequencies]) # round to integer
 
-                    timepoint_std = np.std(all_trials_as_np[:,timepoint])
-                    timepoint_se = timepoint_std/sqrt(len(all_trials_as_np[:,timepoint]))
-                    error.append(timepoint_se)
-
-            if plot_TF:
-                # print(len(error))
-                # print(len(response))
-                axs[plot_row_counter,plot_coln_counter].plot(np.transpose(all_trials_as_np))
-                # axs[5-plot_row_counter,plot_coln_counter].axvline(x=4,color='k')
-                # axs[plot_row_counter,plot_coln_counter].plot(response)
-                # axs[plot_row_counter,plot_coln_counter].fill_between(range(len(response)),response-error,response+error,alpha=0.5)
-                axs[plot_row_counter,plot_coln_counter].xaxis.set_visible(False)
-                axs[plot_row_counter,plot_coln_counter].yaxis.set_visible(False)
-                axs[plot_row_counter,plot_coln_counter].autoscale(enable=True, axis='x', tight=True)
-                axs[plot_row_counter,plot_coln_counter].set_ylim(bottom=0,top=150)
-                # axs[plot_row_counter,plot_coln_counter].title.set_text(intensity)
-
-            # zscore_response = zscore(response)
-            peak_response = np.amax(response)
-            # peak_response = np.amax(response)
-            # peak_response = np.trapz(response)
-            tuning_curves[frequency_counter,intensity_counter] = peak_response
-
-            intensity_counter += 1
-            # print(freq)
-            # print(intensity)
-            plot_row_counter += 1
-
-        plot_coln_counter += 1
-        frequency_counter += 1
-    
-    if plot_TF:
-        fig.subplots_adjust(wspace=0,hspace=0)
-        plt.show()
-    return tuning_curves
-
-def get_cell_tuning_by_area(cell_traces):
-        # cell_traces is a dictionary of frequencies 
-    # under each frequency is a dictionary of intensities
-    # under each intensity are the traces for each repetitiong of that frequency/intensity combination
-
-    # allocate some space to return
-    # we want a matrix that is nFrequencies x 2 (first column is the frequency, second column is the activity)
-    tuning_curves = np.empty((len(cell_traces),2))
-
-    counter = 0 # to keep track of where we're indexing the empty array
-    for freq in cell_traces:
-        tuning_curves[counter,0] = freq
-        # print(tuning_curves[counter,0])
-
-        # now we need to get the peak intensity of the average of all the trials for that one frequency 
-        n_samples = 0
-        n_trials = 0
-        for intensity in cell_traces[freq]:
-            for repetition in cell_traces[freq][intensity]:
-                if n_trials == 0:
-                    n_samples = len(cell_traces[freq][intensity][repetition])
-                n_trials += 1
-              
-        summed_traces = np.zeros(shape=(n_trials,n_samples))
-
-        trial_counter = 0
-        # let's get a sum of all our traces to average later
-        for intensity in cell_traces[freq]:
-            for repetition in cell_traces[freq][intensity]:
-                summed_traces[trial_counter,:] = cell_traces[freq][intensity][repetition]
-                trial_counter += 1
-
-        # now we have our summed traces, so we need to average it
-        avg_trace = np.average(summed_traces,axis=0)
-
-        # now we grab the peak of the trace occuring AFTER the onset
-        n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE)
-        response = avg_trace[n_baseline_frames:]
-        area_of_response = np.trapz(response)
-        tuning_curves[counter,1] = area_of_response
-
-        counter+=1
-    
-    return tuning_curves
-
-def plot_tuning_curves(cell_dictionary):
-    # frequency_labels = [2,4.5,10,23,52]
-    # intensity_labels = [30,50,70]
-
-    # frequency_labels = [5.7,23,45] #,52]
-    # intensity_labels = [0,70,80,90] #[50,70,90]
-    frequency_labels = [4.4,6.6,10,16,23,34]
-    # # intensity_labels = [30,50,70]
-    intensity_labels = [30,50,70,90]
-
+    # create the figure
     fig,axs = plt.subplots(5,5,figsize=(15,15))
     fig.subplots_adjust(hspace=0.5,wspace=0.001)
-    axs = axs.ravel()
-    counter = 0
-    for cell in cell_dictionary:
-        # if counter<25:
-        #     counter += 1
-        #     continue
+    axs = axs.ravel() # make the axis indexing a vector rather than 2D array
+    for ax,cell in zip(axs,cell_dictionary.keys()):
+        cell_tuning = cell_dictionary[cell]['tuning'] # get the tuning for this cell
+        im = ax.imshow(np.transpose(cell_tuning),cmap='winter',origin='lower') # plot it
+        ax.set_xticks([]) # hide the axis ticks
+        ax.set_yticks([])
+        ax.set_title(cell) # show the cell ID as the title
+        plt.colorbar(im,ax=ax) # add the color bar
 
-        cell_tuning = cell_dictionary[cell]['tuning']
-        smooth_cell_tuning = gaussian_filter(cell_tuning,1)
-        counter += 25
-        im = axs[counter-25].imshow(np.transpose(cell_tuning),cmap='winter',origin='lower')
-        plt.colorbar(im,ax=axs[counter-25])
-        # plt.clim(0,100)
-        axs[counter-25].set_xticks([0,2,4,6,8,10])
-        axs[counter-25].set_xticklabels(frequency_labels)
-        # axs[counter-25].set_yticks([0,2,4])
-        # axs[counter-25].set_yticklabels(intensity_labels)
-        # axs[counter-25].set_xticks([0,1,2])
-        # axs[counter-25].set_xticklabels(frequency_labels)
-        axs[counter-25].set_yticks([0,1,2,3])
-        axs[counter-25].set_yticklabels(intensity_labels)
+    if len(frequencies)>5: # if we have a lot of frequencies
+        # only show a label for every second frequency
+        axs[20].set_xticks(range(0,len(frequencies),2))
+        axs[20].set_xticklabels(frequencies[range(0,len(frequencies),2)])
+    else:
+        # otherwise show every frequency label
+        axs[20].set_xticks(range(0,len(frequencies)))
+        axs[20].set_xticklabels(frequencies[range(0,len(frequencies))])
 
-        if counter-25 == 0:
-            axs[counter-25].set_ylabel("Intensity (dB)")
-            axs[counter-25].set_xlabel("Frequency (Hz)")
+    # show every intensity label
+    axs[20].set_yticks(range(0,len(intensities)))
+    axs[20].set_yticklabels(intensities)
 
-        axs[counter-25].title.set_text(cell)
-
-        counter -= 25
-        if counter==24:
-            break
-        counter += 1
+    # label the axes for just one subplot
+    axs[20].set_ylabel("Intensity (dB)")
+    axs[20].set_xlabel("Frequency (kHz)")
 
     plt.show()
 
-def plot_single_tuning_curve(cell_dictionary,cell_IDX):
+"""
+Shows the tuning heatmap for a single cell, specified by the CELL_OF_INTEREST ID number
+@param cell_tuning: the contents of the 'tuning' key for the cell
+@param cell_ID: the ID of the cell to be plotted
+@param frequencies: a list of frequencies presented during the recording in ascending order
+@param intensities: a list of intensities presented during the recording in ascending order
+"""
+def plot_single_tuning_curve(cell_tuning,cell_ID,frequencies,intensities):
 
     fig = plt.figure(1)
     ax = fig.gca()
 
-    frequency_labels = [5.7,23,45] #,52]
-    intensity_labels = [0,70,80,90] #[50,70,90]
-
-    # get cell ID at this index so we can pull its tuning curve
-    cell_IDs = list(cell_dictionary.keys())
-    cell_of_interest_ID = cell_IDs[cell_IDX]
-
-    cell_tuning = cell_dictionary[cell_of_interest_ID]['tuning']
-
-    im = plt.imshow(np.transpose(cell_tuning),cmap='jet',origin='lower')
+    im = plt.imshow(np.transpose(cell_tuning),cmap='winter',origin='lower')
     plt.colorbar(im)
-    plt.xticks([0,1,2])
-    ax.set_xticklabels(frequency_labels)
-    plt.yticks([0,1,2,3])
-    ax.set_yticklabels(intensity_labels)
+
+    if len(frequencies)>5: # if we have a lot of frequencies
+        # only show a label for every second frequency
+        ax.set_xticks(range(0,len(frequencies),2))
+        ax.set_xticklabels(frequencies[range(0,len(frequencies),2)])
+    else:
+        # otherwise show every frequency label
+        ax.set_xticks(range(0,len(frequencies)))
+        ax.set_xticklabels(frequencies[range(0,len(frequencies))])
+
+    # show every intensity label
+    ax.set_yticks(range(0,len(intensities)))
+    ax.set_yticklabels(intensities)
+
+    # label the axes
+    ax.set_ylabel("Intensity (dB)")
+    ax.set_xlabel("Frequency (Hz)")
+
+    plt.title(cell_ID)
+    plt.show()
+
+"""
+Plot the tuning traces for a single cell
+@param cell_traces: the contents of the 'traces' key for a single cell in the big dictionary
+@param n_frequencies: the total number of unique frequencies presented during the recording
+@param n_intensities: the total number of unique intensities presented during the recording
+@param y_limit: how tall the y axis should be for each subplot
+"""
+def plot_tuning_traces(cell_traces,n_frequencies,n_intensities,y_limit):
+
+    fig,axs = plt.subplots(n_intensities,n_frequencies,sharex='col',sharey='row',figsize=(14,5))
+
+    for row,freq in zip(range(n_frequencies),cell_traces.keys()):
+        for col,itsy in zip(range(n_intensities),reversed(list(cell_traces[freq].keys()))):
+            for rep in cell_traces[freq][itsy]:
+                axs[col,row].plot(cell_traces[freq][itsy][rep]) # plot every trial
+
+            # miscellaneous formatting
+            axs[col,row].set_xticks([])
+            axs[col,row].set_yticks([])
+            if row==0:
+                axs[col,row].set_ylabel(itsy) # add the intensity to the far left edge
+            if col==n_intensities-1:
+                axs[col,row].set_xlabel(freq) # add the frequency at the bottom
+            axs[col,row].axvline(x=4,color='k',linestyle='--')
+            axs[col,row].set_ylim(bottom=0,top=y_limit)
+            axs[col,row].autoscale(enable=True, axis='x', tight=True)
+
+    fig.subplots_adjust(wspace=0,hspace=0)
+    fig.text(0.5,0.01,"Frequency (Hz)",va='center',ha='center')
+    fig.text(0.01,0.5,"Intensity (dB)",va='center',ha='center',rotation='vertical')
     plt.show()
 
 """
@@ -521,30 +333,39 @@ def get_tuning_curves(cell_dictionary):
     # }
     # where tuning curve holds the average peak activity for that specific frequency 
 
+    # You can use get_cell_tuning_by_zscore, get_cell_tuning_by_peak, or get_cell_tuning_by_avg here
     for cell in cell_dictionary:
-        if cell == CELL_OF_INTEREST:
-            cell_dictionary[cell]['tuning'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],True)
-        else:
-            cell_dictionary[cell]['tuning'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'],False)
+        cell_dictionary[cell]['tuning'] = get_cell_tuning_by_zscore(cell_dictionary[cell]['traces'])
         
     return cell_dictionary
-
 
 def main():
 
     # load the dictionary file
     with open(BASE_PATH + CELL_DICT_FILE, 'rb') as f:
         cell_dictionary = pickle.load(f)
+
+    # load the recording info file
+    with open(BASE_PATH + "recording_info.pkl","rb") as f:
+        recording_info = pickle.load(f)
     
+    frequencies = recording_info['frequencies']
+    intensities = recording_info['intensities']
+    # you can also compute tuning for the entire dictionary, it doesn't matter
     active_cell_dictionary = get_active_cells(cell_dictionary) # get only the cells that are active
-    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary)
+    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary) # add the key 'tuning' to the dictionary
 
-    plot_tuning_curves(cell_dictionary_with_tuning)
-    plot_single_tuning_curve(active_cell_dictionary,CELL_OF_INTEREST)
+    # plot some stuff if we want
+    plot_tuning_curves(cell_dictionary_with_tuning,frequencies,intensities)
+    try:
+        plot_single_tuning_curve(active_cell_dictionary[CELL_OF_INTEREST]['tuning'],CELL_OF_INTEREST,frequencies,intensities)
+    except:
+        print("The cell you chose isn't an active cell.")
+    plot_tuning_traces(cell_dictionary[CELL_OF_INTEREST]['traces'],len(frequencies),len(intensities),1300)
 
+    # save the edited dictionary
     with open(BASE_PATH+CELL_DICT_FILE_OUT,'wb') as f:
         pickle.dump(cell_dictionary_with_tuning,f)
-
 
 
 if __name__ == '__main__':
