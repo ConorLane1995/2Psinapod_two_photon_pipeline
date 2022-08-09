@@ -23,7 +23,6 @@ BASE_PATH = config['RecordingFolder']
 CELL_DICT_FILE = config['AnalysisFile']
 CELL_DICT_FILE_OUT = CELL_DICT_FILE
 EPOCH_START_IN_MS = config['EpochStart']
-EPOCH_END_IN_MS = config['EpochEnd'] # time after trial onset included in the epoch
 FRAMERATE = config['RecordingFR']
 
 CELL_OF_INTEREST = 30
