@@ -1,10 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from scipy.ndimage.filters import gaussian_filter1d
+from sklearn.preprocessing import StandardScaler
 from matplotlib.lines import Line2D
-from scipy.io import loadmat
 import seaborn as sns
 
 # more info: https://pietromarchesi.net/pca-neural-data.html

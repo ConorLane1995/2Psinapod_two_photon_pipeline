@@ -249,7 +249,7 @@ def plot_tuning_curves(cell_dictionary,frequencies,intensities):
     axs[20].set_ylabel("Intensity (dB)")
     axs[20].set_xlabel("Frequency (kHz)")
 
-    plt.show()
+    plt.show(block=False)
 
 """
 Shows the tuning heatmap for a single cell, specified by the CELL_OF_INTEREST ID number
@@ -284,7 +284,7 @@ def plot_single_tuning_curve(cell_tuning,cell_ID,frequencies,intensities):
     ax.set_xlabel("Frequency (Hz)")
 
     plt.title(cell_ID)
-    plt.show()
+    plt.show(block=False)
 
 """
 Plot the tuning traces for a single cell
@@ -316,7 +316,7 @@ def plot_tuning_traces(cell_traces,n_frequencies,n_intensities,y_limit):
     fig.subplots_adjust(wspace=0,hspace=0)
     fig.text(0.5,0.01,"Frequency (Hz)",va='center',ha='center')
     fig.text(0.01,0.5,"Intensity (dB)",va='center',ha='center',rotation='vertical')
-    plt.show()
+    plt.show(block=False)
 
 """
 Add tuning information to the big dictionary for each cell
@@ -361,7 +361,8 @@ def main():
     except:
         print("The cell you chose isn't an active cell.")
     plot_tuning_traces(cell_dictionary[CELL_OF_INTEREST]['traces'],len(frequencies),len(intensities),1300)
-
+    plt.show()
+    
     # save the edited dictionary
     with open(BASE_PATH+CELL_DICT_FILE_OUT,'wb') as f:
         pickle.dump(cell_dictionary_with_tuning,f)
