@@ -10,7 +10,6 @@ import numpy as np
 import pickle
 import json
 import os
-from scipy.io import loadmat
 
 # load what we need from the config file
 with open(os.path.abspath(os.path.dirname(__file__)) +'/../../config.json','r') as f:

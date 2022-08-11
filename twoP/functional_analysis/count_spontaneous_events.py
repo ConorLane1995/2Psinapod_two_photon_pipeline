@@ -1,11 +1,5 @@
-from cmath import sqrt
-from time import time
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter
 import pickle
-import sys
 import json
 import os
 from scipy.stats import zscore
@@ -90,9 +84,6 @@ def main():
     for cell in cell_dictionary:
         event_frames.append(count_events(cell_dictionary[cell]['traces']))
 
-    # plt.hist(total_events)
-    # plt.show()
-    
     with open(BASE_PATH+'events.pkl','wb') as f:
         pickle.dump(event_frames,f)
 
