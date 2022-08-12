@@ -226,8 +226,8 @@ def main():
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
 
-    print(np.unique(conditions[:,0]))
-    print(np.unique(conditions[:,1]))
+    print('Frequencies presented: {}'.format(np.unique(conditions[:,0])))
+    print('Intensities presented: {}'.format(np.unique(conditions[:,1])))
 
     # account for the neuropil (background fluorescence)
     corrected_fluo = fluorescence_trace - 0.7*neuropil_trace

@@ -110,10 +110,8 @@ def main():
         if traces_with_active_boolean[cell]['active'] == True:
             counter += 1
 
-    print("Number of total cells: ")
-    print(len(cell_dictionary))
-    print("Number of active cells: ")
-    print(counter)
+    print('Number of total cells: {}'.format(len(cell_dictionary)))
+    print("Number of active cells: {}".format(counter))
 
     with open(BASE_PATH+OUTPUT_FILE,'wb') as f:
         pickle.dump(traces_with_active_boolean,f)
