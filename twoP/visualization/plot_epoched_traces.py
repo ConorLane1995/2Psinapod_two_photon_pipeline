@@ -36,7 +36,7 @@ def plot_trials(epoched_traces,y_limit):
         n_trial_samples += 1
 
     # make figure
-    _, axs = plt.subplots(nrows=int(n_trial_samples/2), ncols=2)
+    fig, axs = plt.subplots(nrows=int(n_trial_samples/2), ncols=2)
     axs=axs.ravel()
 
     # get a random sampling of 10 cells
@@ -55,10 +55,6 @@ def plot_trials(epoched_traces,y_limit):
         for cell in cell_sample:
             axs[row].plot(epoched_traces[cell,trial,:]) # plot the trial
 
-        # if this is the first row, add a title
-        if row == 0:
-            axs[row].set_title("Random sampling of cells and trials from the current recording")
-            
         if row != (len(axs)-2): # unless this is the last row, hide the axes
             axs[row].get_xaxis().set_visible(False)
             axs[row].get_yaxis().set_visible(False)
@@ -78,6 +74,7 @@ def plot_trials(epoched_traces,y_limit):
         axs[row].set_ylim([0,y_limit])
         axs[row].set_yticks([y_limit/2])
         
+    fig.suptitle("Random sampling of cells and trials from the current recording")
     plt.show(block=False) # show figure at the end of the script executing
 
 """

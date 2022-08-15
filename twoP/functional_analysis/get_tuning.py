@@ -25,7 +25,7 @@ CELL_DICT_FILE_OUT = CELL_DICT_FILE
 EPOCH_START_IN_MS = config['EpochStart']
 FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 30
+CELL_OF_INTEREST = 67
 
 """
 Estimate cell's response to each frequency/intensity combination by taking the peak of the average trial response for a single condition type.
@@ -260,7 +260,7 @@ Shows the tuning heatmap for a single cell, specified by the CELL_OF_INTEREST ID
 """
 def plot_single_tuning_curve(cell_tuning,cell_ID,frequencies,intensities):
 
-    fig = plt.figure(1)
+    fig = plt.figure()
     ax = fig.gca()
 
     im = plt.imshow(np.transpose(cell_tuning),cmap='winter',origin='lower')
@@ -316,6 +316,7 @@ def plot_tuning_traces(cell_traces,n_frequencies,n_intensities,y_limit):
     fig.subplots_adjust(wspace=0,hspace=0)
     fig.text(0.5,0.01,"Frequency (Hz)",va='center',ha='center')
     fig.text(0.01,0.5,"Intensity (dB)",va='center',ha='center',rotation='vertical')
+    fig.suptitle(CELL_OF_INTEREST)
     plt.show(block=False)
 
 """
@@ -350,16 +351,13 @@ def main():
     
     frequencies = recording_info['frequencies']
     intensities = recording_info['intensities']
-    # you can also compute tuning for the entire dictionary, it doesn't matter
-    active_cell_dictionary = get_active_cells(cell_dictionary) # get only the cells that are active
-    cell_dictionary_with_tuning = get_tuning_curves(active_cell_dictionary) # add the key 'tuning' to the dictionary
+    cell_dictionary_with_tuning = get_tuning_curves(cell_dictionary) # add the key 'tuning' to the dictionary
 
+    active_cell_dictionary_with_tuning = get_active_cells(cell_dictionary_with_tuning)
+    
     # plot some stuff if we want
-    plot_tuning_curves(cell_dictionary_with_tuning,frequencies,intensities)
-    try:
-        plot_single_tuning_curve(active_cell_dictionary[CELL_OF_INTEREST]['tuning'],CELL_OF_INTEREST,frequencies,intensities)
-    except:
-        print("The cell you chose isn't an active cell.")
+    plot_tuning_curves(active_cell_dictionary_with_tuning,frequencies,intensities)
+    plot_single_tuning_curve(cell_dictionary_with_tuning[CELL_OF_INTEREST]['tuning'],CELL_OF_INTEREST,frequencies,intensities)
     plot_tuning_traces(cell_dictionary[CELL_OF_INTEREST]['traces'],len(frequencies),len(intensities),1300)
     plt.show()
     
