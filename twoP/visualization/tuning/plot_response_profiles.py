@@ -13,7 +13,7 @@ import json
 import os
 
 # load what we need from the config file
-with open(os.path.abspath(os.path.dirname(__file__)) +'/../../config.json','r') as f:
+with open(os.path.abspath(os.path.dirname(__file__)) +'/../../../config.json','r') as f:
     config = json.load(f)
 
 BASE_PATH = config['RecordingFolder']
