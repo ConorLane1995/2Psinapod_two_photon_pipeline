@@ -27,7 +27,7 @@ def main():
     with open(BASE_PATH+"corrcoefs.pkl",'rb') as f:
         coeffs = pickle.load(f)
 
-    # load our dictionary
+    # load our dictionary 
     with open(BASE_PATH + CELL_DICT_FILE, 'rb') as f:
         cell_dict = pickle.load(f)
 
