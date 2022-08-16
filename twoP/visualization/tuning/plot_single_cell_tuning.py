@@ -1,5 +1,7 @@
 """
-TODO
+Plots the tuning heatmap and tuning curve traces for a single cell, specified in CELL_OF_INTEREST
+INPUT: cell_dictionary.pkl, recording_info.pkl
+AUTHOR: Veronica Tarka, August 2022, veronica.tarka@mail.mcgill.ca
 """
 
 import matplotlib.pyplot as plt
@@ -14,11 +16,8 @@ with open(os.path.abspath(os.path.dirname(__file__)) +'/../../../config.json','r
 
 BASE_PATH = config['RecordingFolder']
 CELL_DICT_FILE = config['AnalysisFile']
-CELL_DICT_FILE_OUT = CELL_DICT_FILE
-EPOCH_START_IN_MS = config['EpochStart']
-FRAMERATE = config['RecordingFR']
 
-CELL_OF_INTEREST = 67
+CELL_OF_INTEREST = 1231
 
 """
 Shows the tuning heatmap for a single cell, specified by the CELL_OF_INTEREST ID number
@@ -103,7 +102,7 @@ def main():
     intensities = recording_info['intensities']
 
     plot_single_tuning_curve(cell_dict[CELL_OF_INTEREST]['tuning'],CELL_OF_INTEREST,frequencies,intensities)
-    plot_tuning_traces(cell_dict[CELL_OF_INTEREST]['traces'],len(frequencies),len(intensities),1300)
+    plot_tuning_traces(cell_dict[CELL_OF_INTEREST]['traces'],len(frequencies),len(intensities),500)
     plt.show()
 
 if __name__=="__main__":
