@@ -9,6 +9,7 @@ import seaborn as sns
 
 # more info: https://pietromarchesi.net/pca-neural-data.html
 
+
 def reformat_epoched_data(data):
     # taking in nNeurons x nTrials x nFrames array
     # passing out nNeurons x (nTrials*nFrames) array

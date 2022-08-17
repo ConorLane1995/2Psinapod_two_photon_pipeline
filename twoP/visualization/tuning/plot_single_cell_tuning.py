@@ -17,7 +17,7 @@ with open(os.path.abspath(os.path.dirname(__file__)) +'/../../../config.json','r
 BASE_PATH = config['RecordingFolder']
 CELL_DICT_FILE = config['AnalysisFile']
 
-CELL_OF_INTEREST = 1231
+CELL_OF_INTEREST = 285
 
 """
 Shows the tuning heatmap for a single cell, specified by the CELL_OF_INTEREST ID number

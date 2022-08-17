@@ -40,7 +40,7 @@ def plot_tuning_curves(cell_dictionary,frequencies,intensities):
         cell_sample = cell_IDs[25*f:25*(f+1)]
 
         # create the figure
-        fig,axs = plt.subplots(5,5,figsize=(15,15))
+        fig,axs = plt.subplots(5,5,figsize=(20,13))
         fig.subplots_adjust(hspace=0.5,wspace=0.001)
         axs = axs.ravel() # make the axis indexing a vector rather than 2D array
         for ax,cell in zip(axs,cell_sample):
@@ -73,6 +73,7 @@ def plot_tuning_curves(cell_dictionary,frequencies,intensities):
         axs[20].set_ylabel("Intensity (dB)")
         axs[20].set_xlabel("Frequency (kHz)")
 
+        plt.savefig(BASE_PATH+"tuning{}.png".format(f))
         plt.show(block=False)
 
 def main():
@@ -84,8 +85,10 @@ def main():
     with open(BASE_PATH + "recording_info.pkl","rb") as f:
         recording_info = pickle.load(f)
 
-    active_cell_dict = get_active_cells(cell_dict) # get the active cells
+    # active_cell_dict = get_active_cells(cell_dict) # get the active cells
     
+    active_cells = np.load(BASE_PATH + "active_cells.npy")
+    active_cell_dict = dict((k, cell_dict[k]) for k in active_cells)
     frequencies = recording_info['frequencies']
     intensities = recording_info['intensities']
 
