@@ -1,5 +1,6 @@
 """
-TODO documentation
+TODO doc
+Script to find 
 """
 
 import numpy as np

@@ -1,11 +1,6 @@
 """
-Script to find sound-responsive cells by evaluating the median trial response to each condition. 
-If any single condition type elicits a response that is above the threshold, the cell is considered responsive.
-INPUT: Dictionary with the epoched traces
-OUTPUT: Same dictionary but now with an added key "active" that holds a boolean (T if the cell is responsive)
-AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
+TODO doc!
 """
-
 import numpy as np
 import pickle
 import json
@@ -21,7 +16,7 @@ OUTPUT_FILE = TRACES_FILE
 FRAMERATE = config['RecordingFR']
 EPOCH_START_IN_MS = config['EpochStart']
 
-ZSCORE_THRESHOLD = 3 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
+ZSCORE_THRESHOLD = 6 # number of zscores from the mean that the peak response must be from baseline in order for the cell to be considered active
 
 """
 Redefine trial activity as z-scores relative to the baseline frames immediately preceding the stimulus
@@ -46,31 +41,29 @@ Check if a cell is responsive based on whether the peak of the trial average for
 @param cell_trace: a single cell's trial activity (the contents of 'traces' in the big dictionary)
 @return T/F: true if any one condition type elicited an average peak response with a z-score above threshold
 """
-def check_cell_zscore(cell_trace,n_baseline_frames):
+def check_trials(cell_trace,n_baseline_frames):
     # cell_trace is going to be all the trials of this one cell
     # {freq: intensity: repetition: [x,x,x,x,...]}}}
 
+    conditions = []
+    trial_type = 0
+    event_counter = 0
     for freq in cell_trace:
-        for itsy in cell_trace[freq]:
 
-            zscored_trials = []
+        for itsy in cell_trace[freq]:
+            
             for rep in cell_trace[freq][itsy]:
                 # convert each trial to a z-score relative to the pre-trial baseline
-                zscored_trials.append(get_zscored_response(cell_trace[freq][itsy][rep],n_baseline_frames))
+                zscore_response = np.array(get_zscored_response(cell_trace[freq][itsy][rep],n_baseline_frames))
+                peak_response = np.amax(zscore_response)
 
-            # convert the matrix of trials into a np array
-            zscored_trials_as_np = np.array(zscored_trials)
+                if peak_response > ZSCORE_THRESHOLD:
+                    event_counter += 1
+                    conditions.append(trial_type)
 
-            # average across all the trials to get a 1 x nFrames vector
-            avg_zscored_trial = np.median(zscored_trials_as_np, axis=0)
+            trial_type += 1
 
-            # get the peak of the response
-            peak_response = np.amax(avg_zscored_trial)
-
-            if (peak_response > ZSCORE_THRESHOLD): # if any single condition type elicited a median peak response above the threshold, we will call the cell active
-                return True
-
-    return False
+    return (event_counter,len(np.unique(conditions)))
     
 """
 Iterate through each cell and check whether it is sound responsive using either the STD method or z-score method
@@ -79,13 +72,12 @@ Iterate through each cell and check whether it is sound responsive using either 
 @return cell_dictionary: same dictionary as was input except with new key 'active' that contains T/F for whether the cell was responsive or not
 """ 
 def check_all_cells(cell_dictionary,n_baseline_frames): #,ID_list):
+    event_profiles = []
     for cell in cell_dictionary:
-        if (check_cell_zscore(cell_dictionary[cell]['traces'],n_baseline_frames)):# and (cell in ID_list)):
-            cell_dictionary[cell]['active'] = True
-        else:
-            cell_dictionary[cell]['active'] = False
+        (n_events,n_conditions) = check_trials(cell_dictionary[cell]['traces'],n_baseline_frames)
+        event_profiles.append([n_events,n_conditions])
 
-    return cell_dictionary
+    return event_profiles
 
 def main():
     # import our cell dictionary
@@ -97,25 +89,9 @@ def main():
     # define our pre-stim baseline we'll pass into our functions
     n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE) * -1 # these are the frames we'll use as the baseline
 
-    # TODO sort out this commented out stuff
-    # IDs_mat = loadmat("/media/vtarka/USB DISK/ID_matching_list.mat")
-    # matching_IDs = IDs_mat["tmp"]
-    # active_IDs = matching_IDs[:,1]
+    evoked_events = check_all_cells(cell_dictionary,n_baseline_frames)#,active_IDs)
 
-    traces_with_active_boolean = check_all_cells(cell_dictionary,n_baseline_frames)#,active_IDs)
+    np.save(BASE_PATH+"evoked_events.npy",evoked_events)
 
-
-    # find the number of active cells
-    counter = 0
-    for cell in traces_with_active_boolean:
-        if traces_with_active_boolean[cell]['active'] == True:
-            counter += 1
-
-    print('Number of total cells: {}'.format(len(cell_dictionary)))
-    print("Number of active cells: {}".format(counter))
-
-    with open(BASE_PATH+OUTPUT_FILE,'wb') as f:
-        pickle.dump(traces_with_active_boolean,f)
-
-if __name__=='__main__':
+if __name__=="__main__":
     main()
