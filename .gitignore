@@ -1,12 +1,11 @@
 **.python-version
 
-data/
+notebooks/
 
 2p_venv/
 
-src/plotly_dash/deploy/
+twoP/plotly_dash/deploy/
 
-src/config.json
-config.json
+./config.json
 
 .vscode/
