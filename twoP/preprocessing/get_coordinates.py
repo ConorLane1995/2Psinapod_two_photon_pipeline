@@ -1,7 +1,7 @@
 """
 Add the x and y coordinates for each cell relative to the field of view of the recording to the big dictionary
 INPUT: stat.npy (Suite2P output), cell_dictionary.pkl
-OUTPUT: cell_dictionary.pkl with new keys 'x' and 'y' containing the coordinates
+OUTPUT: cell_dictionary.pkl with new keys 'x' and 'y' containing the coordinates TODO (update)
 AUTHOR: Veronica Tarka, May 2022, veronica.tarka@mail.mcgill.ca
 """
 
@@ -32,6 +32,9 @@ def main():
 
         cell_dict[cell]['x'] = this_cell_x
         cell_dict[cell]['y'] = this_cell_y
+
+        cell_dict[cell]['xs'] = stat[cell-1]["xpix"]
+        cell_dict[cell]['ys'] = stat[cell-1]["ypix"]
     
     # save it
     with open(BASE_PATH + CELL_DICT_FILE, 'wb') as f:

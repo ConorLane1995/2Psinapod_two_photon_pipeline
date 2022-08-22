@@ -1,6 +1,13 @@
+"""
+TODO doc
+"""
+
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from matplotlib.patches import Polygon
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib as mpl
+from matplotlib.colors import ListedColormap
 import seaborn as sns
 import numpy as np
 import pickle
@@ -103,15 +110,6 @@ def voronoi_finite_polygons_2d(vor, radius=None):
 """
 https://www.daniweb.com/programming/computer-science/tutorials/520314/how-to-make-quality-voronoi-diagrams
 """
-def get_voronoi_polygons(coordinates):
-    vor = Voronoi(coordinates)
-    regions, vertices = voronoi_finite_polygons_2d(vor)
-
-    polygons = []
-    for reg in regions:
-        polygon = vertices[reg]
-        polygons.append(polygon)
-    return polygons
 
 def get_coordinates(cell_dict):
     coordinates = []
@@ -127,44 +125,12 @@ def get_best_frequency(cell_tuning,freqs):
     return max_response_idx
 
 def get_BF_colors(BFs):
-    pal = sns.color_palette('rocket_r', 13)
+    pal = sns.color_palette('rocket_r', 12)
     colors = []
     for bf in BFs:
         colors.append(pal[bf])
 
     return colors
-
-def plot_polygons(polygons, colors, ax=None, alpha=0.5, linewidth=1, saveas=None, show=True):
-    # Configure plot 
-    if ax is None:
-        plt.figure(figsize=(5,5))
-        ax = plt.subplot(111)
-
-    # Remove ticks
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-    ax.axis("equal")
-
-    # Set limits
-    ax.set_xlim(0,1)
-    ax.set_ylim(0,1)
-
-    # Add polygons 
-    for poly,color in zip(polygons,colors):
-        colored_cell = Polygon(poly,
-                               linewidth=linewidth, 
-                               alpha=alpha,
-                               facecolor=color,
-                               edgecolor="black")
-        ax.add_patch(colored_cell)
-
-    if not saveas is None:
-        plt.savefig(saveas)
-    if show:
-        plt.show()
-
-    return ax 
 
 def main():
     # load the dictionary file
@@ -174,21 +140,54 @@ def main():
     with open(BASE_PATH + "recording_info.pkl", 'rb') as f:
         recording_info = pickle.load(f)
 
+    freqs = recording_info['frequencies']
     active_cell_dict = get_active_cells(cell_dict)
     coordinates = get_coordinates(active_cell_dict)
+    coordinates = np.append(coordinates, [[999,999], [-999,999], [999,-999], [-999,-999]], axis = 0)
 
     BFs = []
     for cell in active_cell_dict:
         BFs.append(get_best_frequency(active_cell_dict[cell]['tuning'],recording_info['frequencies']))
 
     colors = get_BF_colors(BFs)
-    polygons = get_voronoi_polygons(coordinates)
+    for i in range(4):
+        colors.append((0,0,0))
+
+    # for color,counter in zip(colors,range(len(colors))):
+    #     plt.plot(range(5),np.ones(5)*counter,c=color)
+
+    # plt.show()
+
+    # np_colors = np.array(colors)
+    # colors = np.multiply(np_colors,100)
+    # colors = np.round(colors)
+    # colors = colors.astype(int)
+
+    # colours = list(lambda flag: '#%02X%02X%02X' % (c[i,0],c[i,1],c[i,2]) for i in range(len(c)))
+
 
     v = Voronoi(coordinates)
-    voronoi_plot_2d(v)
+    # fig = plt.figure()
+    voronoi_plot_2d(v,show_vertices=False,show_points=False)
+
+    pal = sns.color_palette('rocket', 12)
+    for j,bf in zip(range(len(coordinates)),BFs):
+        region = v.regions[v.point_region[j]]
+        if not -1 in region:
+            polygon = [v.vertices[i] for i in region]
+            plt.fill(*zip(*polygon), color=pal[bf])
+
+    
+    # plt.plot(coordinates[:,0], coordinates[:,1], 'ko')
+    plt.xlim([coordinates[:-4,:].min() - 20, coordinates[:-4,:].max() + 20])
+    plt.ylim([coordinates[:-4,:].min() - 20, coordinates[:-4,:].max() + 20])
+
+    # add a color bar showing the range of values we're looking at
+    my_cmap = ListedColormap(sns.color_palette('rocket',12).as_hex())
+    cbar = plt.colorbar(cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=0,vmax=11),cmap=my_cmap),ticks=range(0,len(freqs),2))
+    cbar.ax.set_yticklabels([freqs[f] for f in range(0,len(freqs),2)])
     plt.show()
 
-    # plot_polygons(polygons,colors)
 
 if __name__=="__main__":
     main()
