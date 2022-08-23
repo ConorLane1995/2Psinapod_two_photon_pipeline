@@ -1,5 +1,8 @@
 """
-TODO
+Plots the projection of individual trials onto the first 3 PCA axes. 
+Uses the average value of each trial response as the sample feature to input to the PCA.
+INPUT: conditions .mat file, cell_dict
+AUTHOR: Veronica Tarka, July 2022, veronica.tarka@mail.mcgill.ca
 """
 
 import numpy as np
@@ -27,10 +30,13 @@ BASE_PATH = config['RecordingFolder'] # folder with all of the files generated b
 CONDITIONS_PATH = config['Conditions'] # name of the CSV (assumed to be within BASE_PATH) with the condition types of each trial (freq, intensity, etc)
 CELL_DICT = config['AnalysisFile'] # name of the file that all of the analysis is getting saved in (tuning, best frequency, etc)
 
-ACTIVE_CELLS_ONLY = True
+ACTIVE_CELLS_ONLY = False
+N_BASELINE_FRAMES = 4
 
 """
-TODO
+Function to standardize the data so it can be used in the PCA
+@param data: n_features x n_samples
+@param data_c: normalized data
 """
 def standardize(data):
     # data: n_features x n_samples
@@ -40,7 +46,8 @@ def standardize(data):
     return data_c
 
 """ 
-TODO
+Formats the plots in main()
+Author credit: https://pietromarchesi.net/pca-neural-data.html
 """
 def add_orientation_legend(ax,trial_types):
     pal = sns.color_palette('rocket_r', 13)
@@ -67,34 +74,35 @@ def main():
         active_cell_idx = np.nonzero(np.in1d(all_IDs,active_cell_IDs))[0]
 
         epoched_data = data[active_cell_idx,:,:]
+    else:
+        epoched_data = data
 
-
-    # trials a list of K Numpy arrays of shape N×T (number of neurons by number of time points).
+    # trials is a list of K Numpy arrays of shape N×T (number of neurons by number of time points)
     trials = []
     for trial_idx in range(len(epoched_data[0])):
         trials.append(epoched_data[:,trial_idx,:])
 
-    trial_type = conditions[:,0]
+    trial_type = conditions[:,0] # list of length K containing the type (i.e. frequency) of every trial
 
-    trial_types = np.unique(conditions[:,0])
+    trial_types = np.unique(conditions[:,0]) # list containing the unique trial types (i.e. frequencies) in ascending order
 
-    Xr = np.vstack([t[:,4:].mean(axis=1) for t in trials]).T
-    Xr_sc = standardize(Xr)
+    # take the mean value across all frames in a single trial (so you get one value per trial and stack all the trials)
+    Xr = np.vstack([t[:,N_BASELINE_FRAMES:].mean(axis=1) for t in trials]).T
+    Xr_sc = standardize(Xr) # standardize
 
-    pca = PCA(n_components=15)
-    Xp = pca.fit_transform(Xr_sc.T).T
+    pca = PCA(n_components=15) # get the first 15 components of the PCA
+    Xp = pca.fit_transform(Xr_sc.T).T # apply the PCA
     
+    # Reverse the trial types list so it looks right on the graph
     trial_types = list(reversed(trial_types))
 
-    pal = sns.color_palette('rocket_r', 13)
-    projections = [(0, 1), (1, 2), (0, 2)]
+    pal = sns.color_palette('rocket_r', len(trial_types))
+    projections = [(0, 1), (1, 2), (0, 2)] # take the PCA components we want to plot on x and y
     fig, axes = plt.subplots(1, 3, figsize=[9, 3], sharey='row', sharex='row')
     for ax, proj in zip(axes, projections):
         for t, t_type in enumerate(trial_types):
             x = Xp[proj[0], np.nonzero(trial_type==t_type)]
             y = Xp[proj[1], np.nonzero(trial_type==t_type)]
-            print(len(x[0]))
-            total_points += len(x[0])
             ax.scatter(x, y, c=pal[t], s=30, alpha=0.7)
             ax.set_xlabel('PC {}'.format(proj[0]+1))
             ax.set_ylabel('PC {}'.format(proj[1]+1))
@@ -102,7 +110,6 @@ def main():
     sns.despine(fig=fig, top=True, right=True)
 
     add_orientation_legend(axes[2],trial_types)
-    print(pca.explained_variance_ratio_)
     plt.show()
 
 
