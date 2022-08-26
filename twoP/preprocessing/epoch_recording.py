@@ -216,7 +216,8 @@ def main():
     fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True) # uncorrected trace of dF/F
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True) # estimation of background fluorescence
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True) # Suite2P's estimation of whether each ROI is a cell or not
-
+    ops = np.load(BASE_PATH + "ops.npy",allow_pickle=True)
+    
     # make sure the stim file and flu traces are roughly the same length
     # if they aren't the same, we'll exit the code 
     if not are_valid_files(len(stimulus), len(fluorescence_trace[0])):
