@@ -30,7 +30,7 @@ BASE_PATH = config['RecordingFolder'] # folder with all of the files generated b
 CONDITIONS_PATH = config['Conditions'] # name of the CSV (assumed to be within BASE_PATH) with the condition types of each trial (freq, intensity, etc)
 CELL_DICT = config['AnalysisFile'] # name of the file that all of the analysis is getting saved in (tuning, best frequency, etc)
 
-ACTIVE_CELLS_ONLY = False
+ACTIVE_CELLS_ONLY = True
 N_BASELINE_FRAMES = 4
 
 """

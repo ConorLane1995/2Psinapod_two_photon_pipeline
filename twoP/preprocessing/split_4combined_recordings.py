@@ -1,7 +1,8 @@
 """
 Script to take the 2P output from recordings that were processed together, and split them into separate files.
+This assumes you combined them in this order: spontaneous (S1), evoked (E1), evoked (E2), spontaneous (S2)
 INPUT: set every variable in ALL CAPS before the main method
-OUTPUT: split files in separate folders defined in R1_FOLDER and R2_FOLDER
+OUTPUT: split files in separate folders defined in S1_FOLDER, E1_FOLDER, E2_FOLDER, S2_FOLDER
 AUTHOR: Veronica Tarka, August 2022, veronica.tarka@mail.mcgill.ca
 """
 import numpy as np
@@ -22,7 +23,7 @@ E2_CONDITION_FILE = "ID112_190822_EvokedPostSal.mat" # file name for the .mat fi
 
 S2_FOLDER = "/media/vtarka/USB DISK/Lab/2P/Vid_248/"
 
-JUNCTURE_FRAMES = [0,9001,16715,24400,33399]# frames where recording 1 stops and recording 2 begins
+JUNCTURE_FRAMES = [0,9000,16714,24399,33398]# frames where recording 1 stops and recording 2 begins
 # JUNCTURE_FRAME is included in recording 2, JUNCTURE_FRAME-1 is included in recording 1
 
 def main():
@@ -39,6 +40,7 @@ def main():
         np.save(folder + "F.npy",fluorescence_trace[:,JUNCTURE_FRAMES[frame_idx]:JUNCTURE_FRAMES[frame_idx+1]])
         np.save(folder + "Fneu.npy",neuropil_trace[:,JUNCTURE_FRAMES[frame_idx]:JUNCTURE_FRAMES[frame_idx+1]])  
         np.save(folder + "spks.npy",spks_trace[:,JUNCTURE_FRAMES[frame_idx]:JUNCTURE_FRAMES[frame_idx+1]]) 
+
 
     # copy some of the shared files into the R1_FOLDER so you don't have to manually move them
     folders = [E1_FOLDER,E2_FOLDER]

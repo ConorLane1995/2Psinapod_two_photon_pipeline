@@ -6,7 +6,7 @@ TODO doc
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from scipy.ndimage.filters import gaussian_filter1d
 from matplotlib.lines import Line2D
 from scipy.io import loadmat
@@ -33,23 +33,12 @@ N_BASELINE_FRAMES = 4
 
 # more info: https://pietromarchesi.net/pca-neural-data.html
 
-def reformat_epoched_data(data):
-    # taking in nNeurons x nTrials x nFrames array
-    # passing out nNeurons x (nTrials*nFrames) array
-
-    n_by_f_data = np.reshape(data,(len(data),len(data[0])*len(data[0][0])))
-    return n_by_f_data
-
 def standardize(data):
     # data: n_features x n_samples
 
     ss = StandardScaler(with_mean=True,with_std=True)
     data_c = ss.fit_transform(data.T).T
     return data_c
-
-def re_epoch_data(data,n_trials):
-    nxtxf_data = np.reshape(data,(len(data),n_trials,-1))
-    return nxtxf_data
 
 
 

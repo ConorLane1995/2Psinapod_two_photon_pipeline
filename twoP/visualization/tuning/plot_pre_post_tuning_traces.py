@@ -8,15 +8,17 @@ AUTHOR: Veronica Tarka, August 2022, veronica.tarka@mail.mcgill.ca
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 import pickle
 
-PRE_CELL_DICT_FILE = "/media/vtarka/USB DISK/Lab/2P/238_239_combined/Vid_238s/cells.pkl" # path to the cell dictionary for the pre-recording
-POST_CELL_DICT_FILE = "/media/vtarka/USB DISK/Lab/2P/238_239_combined/Vid_239s/cells.pkl" # path to the cell dictionary for the post-recording
-RECORDING_INFO_FILE = "/media/vtarka/USB DISK/Lab/2P/238_239_combined/Vid_239s/recording_info.pkl" # path to the recording info file, can be for just one of the recordings since they should use the same stim protocol
-FIGURE_FOLDER = "/media/vtarka/USB DISK/Lab/2P/238_239_combined/" # folder to save the figures in, set to None if you don't want them saved
+PRE_CELL_DICT_FILE = "/media/vtarka/USB DISK/Lab/2P/Vid_246/cells.pkl" # path to the cell dictionary for the pre-recording
+POST_CELL_DICT_FILE = "/media/vtarka/USB DISK/Lab/2P/Vid_247/cells.pkl" # path to the cell dictionary for the post-recording
+RECORDING_INFO_FILE = "/media/vtarka/USB DISK/Lab/2P/Vid_246/recording_info.pkl" # path to the recording info file, can be for just one of the recordings since they should use the same stim protocol
+FIGURE_FOLDER = None # folder to save the figures in, set to None if you don't want them saved
 
 # set your list of cell IDs you'd like to plot
-CELLS_TO_PLOT = [2,5,10,27,31,39,48,52,81,103,123,133,150,240,257,1475]
+active_cells = np.load("/media/vtarka/USB DISK/Lab/2P/Vid_247/active_cells.npy")
+CELLS_TO_PLOT = random.sample(list(active_cells),10) #[2,5,10,27,31,39,48,52,81,103,123,133,150,240,257,1475]
 
 """
 Get the largest value of the recording

@@ -78,7 +78,7 @@ Iterate through each cell and check whether it is sound responsive using either 
 @param n_baseline_frames: the number of frames included in the trial epoch that preced the stimulus onset
 @return cell_dictionary: same dictionary as was input except with new key 'active' that contains T/F for whether the cell was responsive or not
 """ 
-def check_all_cells(cell_dictionary,n_baseline_frames): #,ID_list):
+def check_all_cells(cell_dictionary,n_baseline_frames):
     for cell in cell_dictionary:
         if (check_cell_zscore(cell_dictionary[cell]['traces'],n_baseline_frames)):# and (cell in ID_list)):
             cell_dictionary[cell]['active'] = True
@@ -97,13 +97,7 @@ def main():
     # define our pre-stim baseline we'll pass into our functions
     n_baseline_frames = round(EPOCH_START_IN_MS/1000 * FRAMERATE) * -1 # these are the frames we'll use as the baseline
 
-    # TODO sort out this commented out stuff
-    # IDs_mat = loadmat("/media/vtarka/USB DISK/ID_matching_list.mat")
-    # matching_IDs = IDs_mat["tmp"]
-    # active_IDs = matching_IDs[:,1]
-
-    traces_with_active_boolean = check_all_cells(cell_dictionary,n_baseline_frames)#,active_IDs)
-
+    traces_with_active_boolean = check_all_cells(cell_dictionary,n_baseline_frames)
 
     # find the number of active cells
     counter = 0

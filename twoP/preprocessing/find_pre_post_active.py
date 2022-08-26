@@ -13,10 +13,10 @@ from utils import get_active_cells
 
 def main():
     
-    with open("/media/vtarka/USB DISK/Lab/2P/238_239_combined/Vid_238s/cells.pkl","rb") as f:
+    with open("/media/vtarka/USB DISK/Lab/2P/Vid_246/cells.pkl","rb") as f:
         r1_cells = pickle.load(f)
 
-    with open("/media/vtarka/USB DISK/Lab/2P/238_239_combined/Vid_239s/cells.pkl","rb") as f:
+    with open("/media/vtarka/USB DISK/Lab/2P/Vid_247/cells.pkl","rb") as f:
         r2_cells = pickle.load(f)
 
     r1_acells = get_active_cells(r1_cells)
@@ -26,7 +26,7 @@ def main():
 
     unique_acells = np.unique(total_acells)
 
-    np.save("/media/vtarka/USB DISK/Lab/2P/238_239_combined/Vid_238s/active_cells.npy",unique_acells)
+    np.save("/media/vtarka/USB DISK/Lab/2P/Vid_247/active_cells.npy",unique_acells)
 
     
 if __name__=="__main__":
