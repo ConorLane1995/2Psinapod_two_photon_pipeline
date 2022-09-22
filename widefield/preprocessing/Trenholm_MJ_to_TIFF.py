@@ -4,7 +4,8 @@ Created on Wed Sep  7 15:58:23 2022
 
 @author: Conor Lane
 """
-
+import skvideo
+skvideo.setFFmpegPath('C:/FFmpeg/bin')
 import skvideo.io
 import numpy as np
 import tifffile
