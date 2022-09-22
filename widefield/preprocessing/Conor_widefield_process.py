@@ -7,7 +7,7 @@ import tifffile
 
 
 #Location of the tif recording you'd like to process.
-folder = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09082022/ID112_090822_GCaMP6s_4/"
+folder = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09082022/ID112_090822_GCaMP6s_5/"
 
 
 # Opens the tif images, downsamples from 512x512 to 256x256 resolution and stores in video variable as an ndarray.  
@@ -40,9 +40,10 @@ mean_pixels = mean_pixels[np.newaxis,...]
 baseline_subtracted = (np.subtract(video,mean_pixels))
 DeltaF_Fo = baseline_subtracted/mean_pixels
 
-#Write the video as a tiff, may have to increase brightness in imagej to see it
+#Write the video as a tiff, may have to increase brightness in imagej to see it.  Rename 'temp.tif' to filename. 
 tifffile.imwrite('deltaF_Fo_test.tif',DeltaF_Fo, photometric='minisblack')
 
+#print(DeltaF_Fo[0,0,:])
 
 
 
@@ -59,8 +60,8 @@ tifffile.imwrite('deltaF_Fo_test.tif',DeltaF_Fo, photometric='minisblack')
 #trace for one pixel
 
 #x,y = (150,150)
-#pixels = video[:,x,y]
-#print(pixels.shape)
+#pixels = DeltaF_Fo[:,x,y]
+
 
 #plt.plot(pixels)
 #plt.title('Pixel values for x=' + str(x) + ', y=' + str(y))
