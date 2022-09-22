@@ -37,11 +37,10 @@ for i in range(len(video[0,:,0])):
 # then divide by the mean to get (F-Fo)/Fo
 
 mean_pixels = mean_pixels[np.newaxis,...]
-print(mean_pixels.shape)
-
 baseline_subtracted = (np.subtract(video,mean_pixels))
 DeltaF_Fo = baseline_subtracted/mean_pixels
 
+#Write the video as a tiff, may have to increase brightness in imagej to see it
 tifffile.imwrite('deltaF_Fo_test.tif',DeltaF_Fo, photometric='minisblack')
 
 
