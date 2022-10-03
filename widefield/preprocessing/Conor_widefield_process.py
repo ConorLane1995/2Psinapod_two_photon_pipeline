@@ -224,41 +224,69 @@ conditions = conditions[1:]  #Remove the first silent stim as this corresponds t
 
 #Create average response for each Trial.
 
-with open('C:/Users/Conor/2Psinapod/2Psinapod/widefield/preprocessing/trial_dict.pkl', 'rb') as f:
+with open('C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/trial_dict.pkl', 'rb') as f:
     dict = pickle.load(f)
 
-#for key in dict.keys():
-    #print(key)
-
 # Take the average response of each pixel at each trial, for each frequency. 
+# Create an empty dictinary in which to store the average value for each frequency.  
+# Dict has the structure keys: frequency, items: array of nFrames x nPixels x nPixels (26 x 256 x 256)
 
-#  nTrials x pixels x pixels 
-
-trial_2_4364 = np.array(list(dict[4364][2]))
+average_dict = dict.fromkeys(np.unique(conditions[:,0]))
 trial_array = np.empty([10,26,256,256])
 
-for rep in range(1,len(dict[4364])):
-        trial_array[rep-1,:,:,:] = dict[4364][rep]
+for freq in dict:
+        average_dict[freq] = {}
+        for rep in range(1,len(dict[freq])):
+                trial_array[rep-1,:,:,:] = dict[freq][rep]
+        mean = np.mean(trial_array,axis=0)
+        average_dict[freq] = mean
 
-mean = np.mean(trial_array,axis=0)
+# For each frequency, create an array with frames x pixels x pixels.  For each pixel, find the max value in frames
+max_value_freq = np.empty(shape=[1,256,256])
+max_vals = np.empty(shape=[13,256,256])
 
-plt.plot(mean[:,100,100])
-plt.show()
+max_dict = dict.fromkeys(np.unique(conditions[:,0]))
+for freq in average_dict:
+        max_dict[freq] = {}
+
+# Create a dictionary that contains the maximum values for each frequency, for each pixel. (Freq x nPixels x nPixels)
+freq_array = np.empty(shape=(np.array(list([average_dict[4364]]))).shape)
+max_value_freq = np.empty(shape=[1,256,256])
+
+for freq in average_dict:
+        freq_array = np.array(list(average_dict[freq]))
+        for i in range(len(freq_array[0][0])):
+                for j in range(len(freq_array[0][0])):
+                        max_value_freq[:,i,j] = np.amax(freq_array[:,i,j])
+        print(max_value_freq)
+
+max_array_list = []
+for freq in max_dict:
+        max_array_list.append(list(max_dict[freq]))
+max_array = np.array(max_array_list)
+
+#for i in range(len(max_array[:,:,0,:])):
+        #for j in range(len(max_array[:,:,:,0])):
+                #max_element = np.amax(max_array[:,:,i,j])
+                #print(max_element)
+
+maximal = np.amax(max_array[:,:,0,0])
+test = np.array(list(max_dict[5371]))
+#print(average_dict.keys())
+#print(max_array_list)
 
 
 
 
 
 
-#Ave = np.array(list(dict[4364].values())).mean()
 
 
 
 
 
-
-#freq_dict[f][num_rep] = epoched_pixels[trial,:,:,:]
-#  So in 4364, the ten trials (26 frames) are contained.  (26 x 256 x 256)
+# add this max value to an empty array of shape 13 x 256 x 256
+# For each pixel, find the sub-level of the array 
 
 
 
