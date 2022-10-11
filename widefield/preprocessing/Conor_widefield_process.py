@@ -1,45 +1,107 @@
 import time
 from datetime import timedelta
+from timeit import repeat
 start_time = time.monotonic()
 
-
 import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.io import imread
 from skimage.measure import block_reduce
 import os
+import matplotlib
 from matplotlib import pyplot as plt
+from matplotlib import cm
 import tifffile
 import scipy.io as sio
 import pickle
+from skimage import filters
+from scipy.ndimage import gaussian_filter
+from scipy.ndimage import median_filter
+from scipy import signal
 
 TRIGGER_DELAY_IN_MS = 0
 RECORDING_FRAMERATE = 10.01
 EPOCH_START_IN_MS = -500
 EPOCH_END_IN_MS = 2000
+cutoff = 0.2
+fs = 10.01
+
+
+def load_recording(folder):
+
+        # Opens the tif images, downsamples from 512x512 to 256x256 resolution (change block size for different downsizing) and stores in video variable as an ndarray.  
+        # Note: the individual tif images must be the ONLY thing in the folder, it will try to load anything else as part of the video.
+
+        video = []
+        images = [img for img in os.listdir(folder)]
+
+        for img in images:
+                im = imread(folder+img)
+                downsamp_img = block_reduce(im,block_size=(2,2),func=np.mean)
+                video.append(downsamp_img)
+        video = np.array(video)
+
+        return video
+
+def butter_highpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
+    return b, a
+
+def butter_highpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_highpass(cutoff, fs, order=order)
+    y = signal.filtfilt(b, a, data)
+    return y
+
+def apply_butter_highpass(video,cutoff,fs):
+        for i in range(len(video[0,:,0])):
+                for j in range(len(video[0,0,:])):
+                        video[:,i,j] = butter_highpass_filter(video[:,i,j],cutoff,fs,order=5)
+        return video
 
 
 
 
-#CONVERT THIS TO A FUNCTION:
 
-# Take the mean of each pixel across all frames and store it in a 256x256 ndarray. 
-#mean_pixels = np.empty(shape=[256,256])
+# Fits a Gaussian filter to each frame in the recording.  
+def fit_multi_channel_gaussian(video):
 
-#for i in range(len(video[0,:,0])):
-        #for j in range(len(video[0,0,:])):
+        for frame in range(len(video)):
+                video[frame,:,:] = filters.gaussian(video[frame,:,:],sigma=1,truncate=2)
 
-                #mean = np.mean(video[:,i,j])
-                #mean_pixels[i,j] = mean
-
-#For each frame, subtract the mean of that frame from the total recording, 
-# then divide by the mean to get (F-Fo)/Fo
-
-#Reshape array so can subtract mean value
-#mean_pixels = mean_pixels[np.newaxis,...]
-#baseline_subtracted = (np.subtract(video,mean_pixels))
-#DeltaF_Fo = baseline_subtracted/mean_pixels
+        return video
 
 
+# Fits a Median filter to each frame in the recording.  
+def fit_median_filter(video):
+        for frame in range(len(video)):
+                video[frame,:,:] = median_filter(video[frame,:,:],size=3)
+
+        return video
+
+
+
+def convert_to_deltaF_Fo(video):
+        # Takes a single pixel mean for whole pixel's trace - only really good for visualization. 
+        # Take the mean of each pixel across all frames and store it in a 256x256 ndarray. 
+        mean_pixels = np.empty(shape=[256,256])
+
+        for i in range(len(video[0,:,0])):
+                for j in range(len(video[0,0,:])):
+
+                        mean = np.mean(video[:,i,j])
+                        mean_pixels[i,j] = mean
+
+        #For each frame, subtract the mean of that frame from the total recording, 
+        # then divide by the mean to get (F-Fo)/Fo
+
+        #Reshape array so can subtract mean value
+        mean_pixels = mean_pixels[np.newaxis,...]
+        baseline_subtracted = (np.subtract(video,mean_pixels))
+        deltaF_Fo = baseline_subtracted/mean_pixels
+
+        return deltaF_Fo
 
 
 def get_onset_frames(stimulus):
@@ -122,7 +184,6 @@ def epoch_trials(video,onset_frames):
 
         #Start filling the empty matrix:
         # Loop through the onset frames
-
         for onset in range(len(onset_frames)-1):
 
                 #Get the trial starting and ending frames
@@ -151,6 +212,7 @@ def baseline_adjust_pixels(epoched_pixels):
                                 baseline_adjusted_epoched[i,:,j,k] = normalized_trace
 
         return baseline_adjusted_epoched
+
 
 def format_trials(baseline_adjusted_epoched,conditions):
 
@@ -185,112 +247,186 @@ def format_trials(baseline_adjusted_epoched,conditions):
                 temp_map[f] += 1
 
                 # using the frequency and intensity to index our dictionary to store our trace
-                freq_dict[f][num_rep] = epoched_pixels[trial,:,:,:]
+                freq_dict[f][num_rep] = baseline_adjusted_epoched[trial,:,:,:]
 
         return freq_dict
 
+        
+
+def trial_average(freq_dict,conditions):
+
+        #For each pixel, create an average response across all trial repetitions, outputting an average trace for each pixel at each frequency. 
+        # Creates an empty dictinary in which to store the average value for each frequency.  
+        # Takes the repeteated trial values from the freq_dict and puts them into trial_array, then averages across all trials. 
+        # Places the average of each frequency trial_array into the new dict. 
+        # average_dict has the structure keys: frequency, items: array of nFrames x nPixels x nPixels (26 x 256 x 256)
+
+        average_dict = freq_dict.fromkeys(np.unique(conditions[:,0]))
+        trial_array = np.empty([10,26,256,256])
+
+        for freq in freq_dict:
+                average_dict[freq] = {}
+                for rep in range(1,len(freq_dict[freq])):
+                        trial_array[rep-1,:,:,:] = freq_dict[freq][rep]
+                mean = np.mean(trial_array,axis=0)
+                average_dict[freq] = mean
+
+        return average_dict
 
 
+def get_max_response(average_dict):
+        # For each frequency, create an array with frames x pixels x pixels.  For each pixel, find the max value in frames
+        max_dict = dict.fromkeys(np.unique(conditions[:,0]))
+        # Create a dictionary that contains the maximum values for each frequency, for each pixel. (Freq x nPixels x nPixels)
+        for freq in average_dict:
+                max_dict[freq] = {}
+                freq_array = np.array(list(average_dict[freq]))
+                max_value_freq = np.empty(shape=[1,256,256])
+                for i in range(len(freq_array[0][0])):
+                        for j in range(len(freq_array[0][0])):
+                                max = np.amax(freq_array[:,i,j])
+                                max_value_freq[:,i,j] = max
+                max_dict[freq] = max_value_freq
+        return max_dict
 
+
+# For each pixel, print the value from across all frequencies that was the maximum response. 
+def get_best_frequency(max_dict):
+
+        max_array_list = []
+        for freq in max_dict:
+                max_array_list.append(list(max_dict[freq]))
+
+        max_array = np.array(max_array_list)
+        best_freq = np.empty(shape=[1,256,256])
+        for i in range(len(max_array[1,0,:,0])):
+                for j in range(len(max_array[1,0,0,:])):
+                        indices = np.where(max_array[:,:,i,j] == max_array[:,:,i,j].max())
+                        indices = np.array(indices[0])
+                        best_freq[:,i,j] = indices[0]
+
+        return best_freq
+
+def color_map_rgb(value, cmap_name='hot', vmin=1, vmax=12):
+    # norm = plt.Normalize(vmin, vmax)
+    norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+    cmap = cm.get_cmap(cmap_name)  # PiYG
+    rgb = cmap(norm(abs(value)))[:3]  # will return rgba, we take only first 3 so we get rgb
+    #color = matplotlib.colors.rgb2hex(rgb)
+    return rgb
+
+def convert_to_rgb(array):
+        rgb_array = np.zeros([3,256,256])
+        for i in range(len(array[0,:,0])):
+                for j in range(len(array[0,0,:])):
+                        rgb = color_map_rgb(array[:,i,j],cmap_name='hot',vmin=1,vmax=12)
+                        #print(rgb)
+                        rgb_array[:,i,j] = rgb[0,:3]
+        return rgb_array        
+
+'''
+MAIN:
+
+'''
 #FILESTOLOAD
 
-#Location of the tif recording you'd like to process.
-folder = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09282022_GCaMP6s_ID175/ID175_09282022_GCaMP6s_1_512x512/"
+#Location of the tif recording to be processed.
+folder = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09282022_GCaMP6s_ID175/ID175_09282022_GCaMP6s_2_512x512/"
 
-voltfile = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09282022_GCaMP6s_ID175/VoltageRecording-09282022-1256-086/VoltageRecording-09282022-1256-086_Cycle00001_VoltageRecording_001.csv"
+#Location of the voltage recording CSV file for triggers.
+voltfile = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09282022_GCaMP6s_ID175/VoltageRecording-09282022-1256-088/VoltageRecording-09282022-1256-088_Cycle00001_VoltageRecording_001.csv"
 voltrecord = np.genfromtxt(voltfile,delimiter=',',skip_header=True)
 
-conditions_mat = sio.loadmat("C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09282022_GCaMP6s_ID175/ID175_09282022_1.mat")
+#Location of the stimulus order .mat file 
+conditions_mat = sio.loadmat("C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/09282022_GCaMP6s_ID175/ID175_09282022_2.mat")
 conditions = conditions_mat["stim_data"]
 conditions = conditions[1:]  #Remove the first silent stim as this corresponds to frame 0
 
-# Opens the tif images, downsamples from 512x512 to 256x256 resolution and stores in video variable as an ndarray.  
-# Note: the individual tif images must be the ONLY thing in the folder, it will try to load a tif stack as part of the variable.
 
-#video = []
-#images = [img for img in os.listdir(folder)]
+#Load the recording to be analyzed
+video = load_recording(folder)
 
-#for img in images:
-        #im = imread(folder+img)
-        #downsamp_img = block_reduce(im,block_size=(2,2),func=np.mean)
-        #video.append(downsamp_img)
+#Denoise the recording with a gaussian filter
+#video = fit_multi_channel_gaussian(video)
 
-#video = np.array(video)
+#Denoise recording with median filter
+#video = fit_median_filter(video)
 
-#onset_frames = get_onset_frames(voltrecord)
-#epoched_pixels = epoch_trials(video,onset_frames)
-#baseline_adjust_epoched = baseline_adjust_pixels(epoched_pixels)
-#trial_dict = format_trials(baseline_adjust_epoched,conditions)
+#video = apply_butter_highpass(video,cutoff,fs)
 
-#Create average response for each Trial.
+#get onset frames of stims
+onset_frames = get_onset_frames(voltrecord)
 
-with open('C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/trial_dict.pkl', 'rb') as f:
-    dict = pickle.load(f)
+#separate recording into individual trials using onset frames 
+epoched_pixels = epoch_trials(video,onset_frames)
 
-# Take the average response of each pixel at each trial, for each frequency. 
-# Create an empty dictinary in which to store the average value for each frequency.  
-# Dict has the structure keys: frequency, items: array of nFrames x nPixels x nPixels (26 x 256 x 256)
+#Baseline adjust each trial (subtract 5 pre-stimulus frames from response)
+baseline_adjust_epoched = baseline_adjust_pixels(epoched_pixels)
 
-average_dict = dict.fromkeys(np.unique(conditions[:,0]))
-trial_array = np.empty([10,26,256,256])
+#Format trials into a dictionary arranged by frequency
+freq_dict = format_trials(baseline_adjust_epoched,conditions)
 
-for freq in dict:
-        average_dict[freq] = {}
-        for rep in range(1,len(dict[freq])):
-                trial_array[rep-1,:,:,:] = dict[freq][rep]
-        mean = np.mean(trial_array,axis=0)
-        average_dict[freq] = mean
+# Condense all trials for each frequency into a single average trace and store in a dictionary (keys = frequency)
+average_dict = trial_average(freq_dict,conditions)
 
-# For each frequency, create an array with frames x pixels x pixels.  For each pixel, find the max value in frames
-max_value_freq = np.empty(shape=[1,256,256])
-max_vals = np.empty(shape=[13,256,256])
+# For each pixel, find the peak of the response to stim and store it in a dict, separated by frequency.
+max_dict = get_max_response(average_dict)
 
-max_dict = dict.fromkeys(np.unique(conditions[:,0]))
-for freq in average_dict:
-        max_dict[freq] = {}
+# Find the frequency elicting the maximum response for each pixel. Arranged in an image-shaped array with frequency values converted to 1-N integers 
+# (lowest freq = 0) 
+best_frequency = get_best_frequency(max_dict)
 
-# Create a dictionary that contains the maximum values for each frequency, for each pixel. (Freq x nPixels x nPixels)
-freq_array = np.empty(shape=(np.array(list([average_dict[4364]]))).shape)
-max_value_freq = np.empty(shape=[1,256,256])
+#best_frequency_gaussian = gaussian_filter(best_frequency,sigma=1)
 
-for freq in average_dict:
-        freq_array = np.array(list(average_dict[freq]))
-        for i in range(len(freq_array[0][0])):
-                for j in range(len(freq_array[0][0])):
-                        max_value_freq[:,i,j] = np.amax(freq_array[:,i,j])
-        print(max_value_freq)
+best_frequency_median = median_filter(best_frequency,size=3)
 
-max_array_list = []
-for freq in max_dict:
-        max_array_list.append(list(max_dict[freq]))
-max_array = np.array(max_array_list)
-
-#for i in range(len(max_array[:,:,0,:])):
-        #for j in range(len(max_array[:,:,:,0])):
-                #max_element = np.amax(max_array[:,:,i,j])
-                #print(max_element)
-
-maximal = np.amax(max_array[:,:,0,0])
-test = np.array(list(max_dict[5371]))
-#print(average_dict.keys())
-#print(max_array_list)
+# Convert the best frequency array to an RGB format. Transpose so it can be plotted as an image.
+#BF_map = convert_to_rgb(best_frequency)
+#BF_map = np.transpose(BF_map, (1,2,0))
 
 
+fig, ax = plt.subplots()
+data = np.squeeze(best_frequency_median)
+cax = ax.imshow(data, cmap=cm.jet)
+ax.set_title('Map with median Filter')
+# Add colorbar, make sure to specify tick locations to match desired ticklabels
+cbar = fig.colorbar(cax, ticks=[2, 4, 6, 8, 10, 12])
+cbar.ax.set_yticklabels(['4364', '6612', '10020', '15184', '23009', '42922'])  # vertically oriented colorbar
+plt.show()
 
 
+"""
+Redefine trial activity as z-scores relative to the baseline frames immediately preceding the stimulus
+@param trial: nFrames x 1 vector of dF/F values over the trial
+@param n_baseline_frames: the number of frames included in the trial epoch which preceded the stimulus
+@return zscore_response: the frames occuring after the stimulus onset now defined as z-scores relative to pre-stim baseline
+"""
 
 
+# def get_zscored_response(trial,n_baseline_frames):
+#     baseline = trial[:n_baseline_frames]
+#     response = trial[n_baseline_frames:]
+
+#     baseline_mean = np.average(baseline)
+#     baseline_std = np.std(baseline)
+
+#     zscorer = lambda x: (x-baseline_mean)/baseline_std
+#     zscore_response = np.array([zscorer(xi) for xi in response])
+
+#     return zscore_response
 
 
+#CHECK EPOCHING IS CORRECT
+#onset_frames_wn = np.round(onset_frames)
+#x,y = (150,150)
+#pixels = video[:,x,y]
+#plt.plot(pixels)
+#plt.title('Pixel values for x=' + str(x) + ', y=' + str(y))
+#for onset in onset_frames_wn:
+     #   plt.vlines(onset,0,50,color='black')
 
-
-
-# add this max value to an empty array of shape 13 x 256 x 256
-# For each pixel, find the sub-level of the array 
-
-
-
-
+#plt.tight_layout()
+#plt.show()
 
 
 
@@ -298,18 +434,82 @@ test = np.array(list(max_dict[5371]))
 
 
 
+
+
+
+
+
+
+
+
+
+#with open('C:/Users/Conor/2Psinapod/2Psinapod/widefield/preprocessing/average_dict.pkl', 'rb') as f:
+      #  average_dict = pickle.load(f)
+
+#average_dict.pop('1000', None)
+
+#n_baseline_frames = 5
+
+#zscore_dict = dict.fromkeys(np.unique(conditions[:,0]))
+#zscore_dict.pop('1000', None)
+
+#for freq in average_dict:
+       # zscore_dict[freq] = {}
+      #  freq_array = average_dict[freq]
+       # zscore_array = np.empty([21,256,256])
+       # for i in range(len(freq_array[0,:,0])):
+              #  for j in range(len(freq_array[0,0,:])):
+                      #  zscore_array[:,i,j] = get_zscored_response(freq_array[:,i,j],n_baseline_frames)
+       # zscore_dict[freq] = zscore_array
+
+#freq_array = average_dict[1000]
+#print(np.mean(freq_array[:,150,150]))
+
+
+
+# test_array = np.array(zscore_dict[5371])       
+# print(test_array[:,150,150])
 
 
 
 
 # create a binary pickle file 
-#f = open("trial_dict.pkl","wb")
+#f = open("average_dict.pkl","wb")
 
 # write the python object (dict) to pickle file
-#pickle.dump(trial_dict,f)
+#pickle.dump(average_dict,f)
 
 # close file
 #f.close()
+
+
+
+
+
+#normalize vector across all frequencies - divide by the sum
+# set a threshold e.g. 0.5 for how much of the response is that frequency
+# plot a histogram to find tuning strength
+# create an array 12 x 256 x 256 - smooth along the axis of each of the 12 "images"
+#cm jet
+
+
+
+
+
+#with open('C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/trial_dict.pkl', 'rb') as f:
+    #dict = pickle.load(f)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -325,17 +525,7 @@ test = np.array(list(max_dict[5371]))
 #test_trace_baseline = test_trace[0:5]
 #normalized_trace = np.subtract(test_trace,baseline_average)
 
-#CHECK EPOCHING IS CORRECT
-#onset_frames_wn = np.round(onset_frames)
-#x,y = (100,100)
-#pixels = video[:,x,y]
-#plt.plot(pixels)
-#plt.title('Pixel values for x=' + str(x) + ', y=' + str(y))
-#for onset in onset_frames_wn:
-        #plt.vlines(onset,4300,5000,color='black')
 
-#plt.tight_layout()
-#plt.show()
 
 #plt.imshow(DeltaF_Fo[0,:,:],cmap='gray')
 #plt.show()
