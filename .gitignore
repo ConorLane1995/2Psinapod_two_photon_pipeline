@@ -9,3 +9,4 @@ twoP/plotly_dash/deploy/
 ./config.json
 
 .vscode/
+widefield/preprocessing/Discarded_functions.py
