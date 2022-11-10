@@ -184,7 +184,9 @@ def baseline_adjust_pixels(epoched_pixels,n_baseline_frames):
                                 test_trace = epoched_pixels[i,:,j,k]
                                 # compute the average of the number of baseline frames
                                 baseline_average = np.average(test_trace[0:n_baseline_frames])
+                                # Subtract the baseline frames from the test trace 
                                 normalized_trace = np.subtract(test_trace,baseline_average)
+                                
                                 baseline_adjusted_epoched[i,:,j,k] = normalized_trace
 
         return baseline_adjusted_epoched
@@ -280,42 +282,75 @@ def get_zscored_response(trial,n_baseline_frames):
 
     return zscore_response
 
-def zscore_and_average(freq_dict,conditions):
+'''
+Converts each trial response to a z-score and averages across trials, to produce a single z-scored trace for each frequency, per pixel. 
+@Param: freq_dict - dict of all the raw trials, with keys being presentation frequencies, containing each rep as a second key. 
+Values are the raw response traces for each trial. e.g. the first rep of a given frequency is freq_dict[freq][rep]
+@Param: conditions - Array containing the order of frequencies presented. Used to make the dict to store z-scores. 
+@Returns: zscore_dict - dict where keys are frequencies, values are arrays of nFrames x nPixels x nPixels, where one averaged z-scored response
+is stored per pixel. 
+'''
 
+def zscore_and_average(freq_dict,conditions):
+        # Create the empty dictionary that will store averaged zscores
         zscore_dict = dict.fromkeys(np.unique(conditions[:,0]))
 
+        #Iterate through the frequencies and reps in freq_dict
         for freq in freq_dict:
+                # Create empty arrays to store the extracted raw trials, and converted z-scores.
                 freq_array = np.empty([len(freq_dict[freq]),25,256,256])
                 zscore_array = np.empty([len(freq_dict[freq]),25,256,256])
                 zscore_dict[freq] = {}
 
+                # Iterate through each rep within that freq key and feed each individual trial into the "get_zscored_response" function.
+                # Stores each rep in its corresponding position within zscore_array.
                 for rep in range(1,len(freq_dict[freq])):
                         freq_array[rep-1,:,:,:] = freq_dict[freq][rep]
                         for i in range(len(freq_array[0,0,:,0])):
                                 for j in range(len(freq_array[0,0,0,:])):
                                         zscore_array[rep-1,:,i,j] = get_zscored_response(freq_array[rep-1,:,i,j],n_baseline_frames)
+                # Average z-scored reps across trials to create one mean response for each pixel.
                 zscore_array_mean = np.mean(zscore_array,axis=0)
+                #Store the averaged array for that frequency in the z_score dictionary.
                 zscore_dict[freq] = zscore_array_mean                                                                                                                                                                                                                                                                                                                                                                       
 
         return zscore_dict
 
-def zscore_and_median(freq_dict,conditions):
+'''
+Takes the formatted individual trials, converts them to a z-score and finds the median value of the average of each response period.  
+Stores this median value in a dictionary where keys are stim frequencies, values are a 1 x Npixels x Npixels 3D array. 
+@Param: freq_dict - dict of all the raw trials, with keys being presentation frequencies, containing each rep as an inner key. 
+e.g. the first rep of a given frequency is freq_dict[freq][rep]
+Values are the raw response traces for each trial.
+@Param: conditions - Array containing the order of frequencies presented. Used to make the dict to store z-scores.
+@Param: start - Frame number at which "response period" begins e.g. 5
+@Param: stop - Frame number at which "response period" ends. 
 
+'''
+
+def zscore_and_median(freq_dict,conditions,start,stop):
+        # Create the empty dictionary that will store median values
         median_zscore_dict = dict.fromkeys(np.unique(conditions[:,0]))
 
         for freq in freq_dict:
+                # Create empty numpy arrays to store each individual trial, it's z-scored version, the average value of the response period,
+                #  and the median value across all trials. 
                 freq_array = np.empty([len(freq_dict[freq]),25,256,256])
                 zscore_array = np.empty([len(freq_dict[freq]),25,256,256])
                 ave_zscore_array = np.empty([len(freq_dict[freq]),256,256])
                 median_zscore_array = np.empty([1,256,256])
                 median_zscore_dict[freq] = {}
 
+
+                #  Iterate through each rep in the given frequency key and convert it to a z-score.
                 for rep in range(1,len(freq_dict[freq])):
                         freq_array[rep-1,:,:,:] = freq_dict[freq][rep]
                         for i in range(len(freq_array[0,0,:,0])):
                                 for j in range(len(freq_array[0,0,0,:])):
                                         zscore_array[rep-1,:,i,j] = get_zscored_response(freq_array[rep-1,:,i,j],n_baseline_frames)
-                                        ave_zscore_array[rep-1,i,j] = np.mean(zscore_array[rep-1,7:15,i,j])
+                                        # Extract the frames corresponding to the response period and find the mean value. 
+                                        ave_zscore_array[rep-1,i,j] = np.mean(zscore_array[rep-1,start:stop,i,j])
+                #  iterate through the mean values for each pixel, and find the median value across all trials for that pixel. 
                 for i in range(len(ave_zscore_array[0,:,0])):
                         for j in range(len(ave_zscore_array[0,0,:])):
                                 median_zscore_array[:,i,j] = np.median(ave_zscore_array[:,i,j])
@@ -325,20 +360,28 @@ def zscore_and_median(freq_dict,conditions):
         return median_zscore_dict
 
 
+# Uses convolution to compute the mean of a 3 frame sliding window.
+# 'valid' input deals with the edges of array - The convolution product is only given for points where the signals overlap completely. 
+# Values outside the signal boundary have no effect.
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
 
 def get_max_response(average_dict):
-        # For each frequency, create an array with frames x pixels x pixels.  For each pixel, find the max value in frames
+        # Create an empty dict containing all frequencies as keys, to store maximum values.
         max_dict = dict.fromkeys(np.unique(conditions[:,0]))
-        # Create a dictionary that contains the maximum values for each frequency, for each pixel. (Freq x nPixels x nPixels)
+        
+
         for freq in average_dict:
                 max_dict[freq] = {}
+                #Create array of the average response values for a given frequency. 
                 freq_array = np.array(list(average_dict[freq]))
+                # Create an array with shape 1 x Npixels x Npixels to store all max values for a given frequency. 
                 max_value_freq = np.empty(shape=[1,256,256])
                 for i in range(len(freq_array[0][0])):
                         for j in range(len(freq_array[0][0])):
+                                # Take as the maximum the three frame moving average with the highest value (maximum value plus frames on either side)
                                 max = np.amax(moving_average(freq_array[5:13,i,j],3))
+                                # Input this max value into the corresponding pixel space. 
                                 max_value_freq[:,i,j] = max
                 max_dict[freq] = max_value_freq
         return max_dict
@@ -380,7 +423,7 @@ def get_only_significant_max(max_dict,max_dict_responsiveorno,conditions):
         return max_dict_significant
 
 
-# For each pixel, print the value from across all frequencies that was the maximum response. 
+# For each pixel, return the value from across all frequencies that was the maximum response. 
 def get_best_frequency(max_dict_significant):
 
         max_array_list = []
@@ -401,6 +444,68 @@ def get_best_frequency(max_dict_significant):
         return best_freq   
 
 
+## PLOTTING FUNCTIONS ##
+
+
+def plot_median(median_zscore_dict,threshold_min,title):
+
+        threshold = {key : np.clip(median_zscore_dict[key],a_min=threshold_min,a_max=None) for key in median_zscore_dict}
+        rounded = {key : np.around(threshold[key], 1) for key in threshold}
+
+        fig,axes = plt.subplots(nrows=3, ncols=4, constrained_layout=True)
+        axes = axes.ravel()
+        for i, (key, value) in enumerate(rounded.items()):
+                axes[i].imshow(np.squeeze(value))
+                axes[i].title.set_text(key)
+        plt.suptitle(title)
+        plt.show()
+        return fig,axes
+
+
+def plot_tonotopic_map(best_frequency,title):
+        # PLOT ALL FREQUENCIES IN ONE TONOTOPIC MAP
+        fig, ax = plt.subplots()
+        data = np.squeeze(best_frequency)
+        cax = ax.imshow(data,cmap=cm.jet)
+        ax.set_title(title)
+        # Add colorbar, make sure to specify tick locations to match desired ticklabels
+        cbar = fig.colorbar(cax, ticks=[0, 2, 4, 6, 8, 11])
+        cbar.ax.set_yticklabels(['4364', '6612', '10020', '15184', '23009', '42922'])  # vertically oriented colorbar
+        plt.show()
+
+        return fig,ax
+
+# PLOT RAW TRACES FROM FREQ_DICT, FOR A SPECIFIC PIXEL
+def plot_raw_traces(freq_dict,x,y,frequency):
+        
+        freq_dict_array = np.empty([len(freq_dict[frequency]),25,256,256])
+        for rep in freq_dict[frequency]:
+                freq_dict_array[rep-1,:,:,:] = freq_dict[frequency][rep]
+
+        fig = plt.plot(np.transpose(freq_dict_array[:,:,y,x]))  ###NOTE:  x and y are reversed because indexing the array (row then column) is the opposite of how the image pixels are arranged.
+        plt.title(str(frequency) + ' Hz' + ' x = '+ str(x) +  ' y= '+ str(y))
+        plt.legend([0,1,2,3,4,5,6,7,8,9])
+        plt.show()
+
+        return fig
+
+def plot_zscored_traces(mean_zscore_dict,x,y):
+        #PLOT AVERAGED, Z-SCORED TRACES FOR ALL FREQUENCIES, FROM MEAN_ZSCORE_DICT
+         
+        mean_zscore_list = []
+        for frequency in mean_zscore_dict:
+                mean_zscore_list.append(list(mean_zscore_dict[frequency]))
+        mean_zscore_array = np.array(mean_zscore_list)
+        ###NOTE:  x and y are reversed because indexing the array (row then column) is the opposite of how the image pixels are arranged.
+        plot_array = mean_zscore_array[:,:,y,x] 
+        plot_array = np.swapaxes(plot_array,0,1)
+
+        fig = plt.plot(plot_array)
+        plt.title('Zscore, x = ' + str(x) + ', y = ' + str(y))
+        plt.legend(['4364', '5371', '6612', '8140', '10020', '12335', '15184', '18691', '23009', '28324', '34867', '42922'],loc='upper right')
+        plt.show()
+
+        return fig
 
 '''
 MAIN:
@@ -409,14 +514,14 @@ MAIN:
 #FILESTOLOAD
 
 #Location of the tif recording to be processed.
-folder = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/27102022_GCaMP6s_ID173/ID173_27102022_GCaMP6s_2/"
+folder = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/27102022_GCaMP6s_ID173/ID173_27102022_GCaMP6s_1/"
 
 #Location of the voltage recording CSV file for triggers.
-voltfile = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/27102022_GCaMP6s_ID173/VoltageRecording-10272022-1526-129_Cycle00001_VoltageRecording_001.csv"
+voltfile = "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/27102022_GCaMP6s_ID173/VoltageRecording-10272022-1526-128_Cycle00001_VoltageRecording_001.csv"
 voltrecord = np.genfromtxt(voltfile,delimiter=',',skip_header=True)
 
 #Location of the stimulus order .mat file 
-conditions_mat = sio.loadmat("C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/27102022_GCaMP6s_ID173/ID173_27102022_2.mat")
+conditions_mat = sio.loadmat("C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/27102022_GCaMP6s_ID173/ID173_27102022_1.mat")
 conditions = conditions_mat["stim_data"]
 conditions = conditions[3:]  #Remove the first silent stim as this corresponds to frame 0
 
@@ -424,13 +529,13 @@ conditions = conditions[3:]  #Remove the first silent stim as this corresponds t
 #Load the recording to be analyzed
 video = load_recording(folder)
 
-# # # # #video = apply_butter_highpass(video,cutoff,fs)
+# # # # # # #video = apply_butter_highpass(video,cutoff,fs)
 
-# # # # # #Denoise the recording with a gaussian filter
-# # # # # #video = fit_multi_channel_gaussian(video)
+# # # # # # # #Denoise the recording with a gaussian filter
+# # # # # # # #video = fit_multi_channel_gaussian(video)
 
-# # # # # #Denoise recording with median filter
-# # # # # #video = fit_median_filter(video,3)
+# # # # # # # #Denoise recording with median filter
+# # # # # # # #video = fit_median_filter(video,3)
 
 # #get onset frames of stims
 onset_frames = get_onset_frames(voltrecord)
@@ -441,20 +546,29 @@ epoched_pixels = epoch_trials(video,onset_frames)
 # # #Baseline adjust each trial (subtract 5 pre-stimulus frames from response)
 baseline_adjusted_epoched = baseline_adjust_pixels(epoched_pixels,n_baseline_frames)
 
-# # # # # # # # #Baseline adjust each trial using a single baseline per pixel
-# # # # # # # # #baseline_adjusted_epoched = single_baseline_adjust(epoched_pixels,n_baseline_frames)
+# # # # # # # # # # #Baseline adjust each trial using a single baseline per pixel
+# # # # # # # # # # #baseline_adjusted_epoched = single_baseline_adjust(epoched_pixels,n_baseline_frames)
 
 # #Format trials into a dictionary arranged by frequency
 freq_dict = format_trials(baseline_adjusted_epoched,conditions)
 
-# # # # # # # # # #Convert each individual trial rep into a z-score and average all ten repeats of a single trial. 
-# # # # # mean_zscore_dict = zscore_and_average(freq_dict,conditions)
+# # # # # # # # # # # #Convert each individual trial rep into a z-score and average all ten repeats of a single trial. 
+# # # # # # # mean_zscore_dict = zscore_and_average(freq_dict,conditions)
 
 # Zscore the individual trials, and return a dict of single median value of the trial period, for each pixel.    
-median_zscore_dict = zscore_and_median(freq_dict,conditions)
+median_zscore_dict = zscore_and_median(freq_dict,conditions,7,15)
 
-# # # # # # Condense all trials for each frequency into a single average trace and store in a dictionary (keys = frequency)
-# # # #average_dict = trial_average(freq_dict,conditions)
+#create a binary pickle file 
+f = open("median_zscore_dict.pkl","wb")
+
+#write the python object (dict) to pickle file
+pickle.dump(median_zscore_dict,f)
+
+#close file
+f.close()
+
+# # # # # Condense all trials for each frequency into a single average trace and store in a dictionary (keys = frequency)
+# # #average_dict = trial_average(freq_dict,conditions)
 
 # # # For each pixel, find the peak of the response to stim and store it in a dict where keys are frequency. 
 # max_dict = get_max_response(mean_zscore_dict)
@@ -475,67 +589,37 @@ median_zscore_dict = zscore_and_median(freq_dict,conditions)
 
 #best_frequency = median_filter(best_frequency,size=2)
 
-# # PLOT ALL FREQUENCIES IN ONE TONOTOPIC MAP
-# fig, ax = plt.subplots()
-# data = np.squeeze(best_frequency)
-# cax = ax.imshow(data,cmap=cm.jet)
-# ax.set_title('Map with median zscore')
-# # Add colorbar, make sure to specify tick locations to match desired ticklabels
-# cbar = fig.colorbar(cax, ticks=[0, 2, 4, 6, 8, 11])
-# cbar.ax.set_yticklabels(['4364', '6612', '10020', '15184', '23009', '42922'])  # vertically oriented colorbar
-# plt.show()
+
+plot = plot_median(median_zscore_dict,0,'27102022_ID173 Recording 1, Frames 7:15')
 
 
-# # PLOT EACH FREQUENCY AS A SEPARATE SUBPLOT
+
+
+# Steps:
+# iterate through each key of median_zscore dict, select a bottom right square of the array (remember to swap x and y).
+# np.mean this square, subtract it from the whole array.  
+
+# background_subtracted = {}
+# for k,v in median_zscore_dict.items():
+#         v = np.squeeze(v)
+#         v = v - np.mean(v[-20:,-20:])
+#         v[v < 0] = 0
+#         background_subtracted[k] = v
+
+#         array = v[-20:,-20:]
+
+# # threshold = {key : np.clip(normalized[key],a_min=2,a_max=None) for key in normalized}
+# rounded = {key : np.around(background_subtracted[key], 2) for key in background_subtracted}
 # fig,axes = plt.subplots(nrows=3, ncols=4, constrained_layout=True)
 # axes = axes.ravel()
-# for i, (key, value) in enumerate(dict_responsiveorno.items()):
+# for i, (key, value) in enumerate(background_subtracted.items()):
 #         axes[i].imshow(np.squeeze(value))
 #         axes[i].title.set_text(key)
-# plt.suptitle('ID173_27102022 Recording 1, 5:13 zscore threshold 2')
-# plt.show()
-
-## PLOT RAW TRACES FROM FREQ_DICT, FOR A SPECIFIC PIXEL
-# frequency = 6612
-# x,y = (50,50)
-# freq_dict_array = np.empty([len(freq_dict[frequency]),25,256,256])
-# for rep in freq_dict[frequency]:
-#         freq_dict_array[rep-1,:,:,:] = freq_dict[frequency][rep]
-
-# plt.plot(np.transpose(freq_dict_array[:,:,y,x]))  ###NOTE:  x and y are reversed because indexing the array (row then column) is the opposite of how the image pixels are arranged.
-# plt.title(str(frequency) + ' Hz' + ' x = '+ str(x) +  ' y= '+ str(y))
-# plt.legend([0,1,2,3,4,5,6,7,8,9])
+# plt.suptitle('normalization test')
 # plt.show()
 
 
-#Round median dict to 1 DP and plot as amplitude map.
 
-rounded = {key : np.around(median_zscore_dict[key], 1) for key in median_zscore_dict}
-
-fig,axes = plt.subplots(nrows=3, ncols=4, constrained_layout=True)
-axes = axes.ravel()
-for i, (key, value) in enumerate(rounded.items()):
-        axes[i].imshow(np.squeeze(value))
-        axes[i].title.set_text(key)
-plt.suptitle('ID173_27102022 Recording 2, 7:15 Median Amp. Map')
-plt.show()
-
-
-
-# PLOT AVERAGED, Z-SCORED TRACES FOR ALL FREQUENCIES, FROM MEAN_ZSCORE_DICT
-# x,y = (240,25)
-# print(best_frequency[:,y,x])  ###NOTE:  x and y are reversed because indexing the array (row then column) is the opposite of how the image pixels are arranged.
-# mean_zscore_list = []
-# for frequency in mean_zscore_dict:
-#         mean_zscore_list.append(list(mean_zscore_dict[frequency]))
-# mean_zscore_array = np.array(mean_zscore_list)
-# plot_array = mean_zscore_array[:,:,y,x] 
-# plot_array = np.swapaxes(plot_array,0,1)
-
-# plt.plot(plot_array)
-# plt.title('Zscore, x = ' + str(x) + ', y = ' + str(y))
-# plt.legend(['4364', '5371', '6612', '8140', '10020', '12335', '15184', '18691', '23009', '28324', '34867', '42922'],loc='upper right')
-# plt.show()
 
 # ##CHECK EPOCHING IS CORRECT
 # onset_frames_wn = np.round(onset_frames)
@@ -554,9 +638,8 @@ plt.show()
 # plot a histogram to find tuning strength
 # create an array 12 x 256 x 256 - smooth along the axis of each of the 12 "images"
 
-# with open('C:/Users/Conor/2Psinapod/2Psinapod/widefield/preprocessing/max_dict.pkl', 'rb') as f:
-#         max_dict = pickle.load(f)
-# del max_dict[1000]
+# with open('C:/Users/Conor/2Psinapod/2Psinapod/widefield/preprocessing/median_zscore_dict.pkl', 'rb') as f:
+#         median_zscore_dict = pickle.load(f)
 
 
 
@@ -569,14 +652,7 @@ plt.show()
 # >>> arr[arr < 10] = 0
 # >>> img.putdata(arr)
 
-# #create a binary pickle file 
-# f = open("median_zscore_dict.pkl","wb")
 
-# #write the python object (dict) to pickle file
-# pickle.dump(median_zscore_dict,f)
-
-# #close file
-# f.close()
 
 # maxime = {key: np.amax(median_zscore_dict[key]) for key in median_zscore_dict}
 # minime = {key: np.amax(median_zscore_dict[key]) for key in median_zscore_dict}
