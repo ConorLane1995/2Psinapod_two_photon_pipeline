@@ -4,7 +4,7 @@ Note: This script only works if the
 Inputs: stim triggers in a csv (filepath in config.json file, "Trigger_if_wrong"), Frame of Ca2+ trace where first stim is 
     estimated to occur. Stimulus frame rate (TriggerFR in config) and recording frame rate (RecordingFR in config)   
 Outputs: Realigned stim CSV where the required number of frames are removed from beginning of voltage recording, to line it
-    up correctly. Saved to BASE_PATH, "RecordingFolder" in config.json
+    up correctly. Saved to BASE_PATH, "RecordingFolder" in config.json.
 AUTHOR: Conor Lane, Created March 2023, Conor.lane@mail.mcgill.ca
 '''
 
