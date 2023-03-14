@@ -5,7 +5,7 @@ Inputs: stim triggers in a csv (filepath in config.json file, "Trigger_if_wrong"
     estimated to occur. Stimulus frame rate (TriggerFR in config) and recording frame rate (RecordingFR in config)   
 Outputs: Realigned stim CSV where the required number of frames are removed from beginning of voltage recording, to line it
     up correctly. Saved to BASE_PATH, "RecordingFolder" in config.json.
-AUTHOR: Conor Lane, Created March 2023, Conor.lane@mail.mcgill.ca
+AUTHOR: Conor Lane, Created March 2023, Conor.lane@mail.mcgill.ca.
 '''
 
 import numpy as np
