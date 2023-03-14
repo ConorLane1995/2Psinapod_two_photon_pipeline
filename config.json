@@ -1,8 +1,9 @@
 {
-  "RepoDir": "/home/bic/vtarka/2Psinapod/", 
+  "RepoDir": "C:/Users/Conor/2PsinapodConor", 
   "RecordingFolder": "/media/vtarka/USB DISK/Lab/2P/Vid_246/",
   "Triggers": "TSeries-08192022-1257-246_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,
+  "Trigger_if_wrong": "",
   "Conditions": "ID112_190822_EvokedPreSal.mat",
   "RecordingFR": 10,
   "AnalysisFile": "cells.pkl",
