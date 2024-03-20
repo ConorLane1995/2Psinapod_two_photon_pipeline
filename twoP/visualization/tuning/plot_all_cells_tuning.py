@@ -88,7 +88,7 @@ def main():
     # active_cell_dict = get_active_cells(cell_dict) # get the active cells
     
     # TODO sort this out so the user can choose one of two options
-    active_cells = np.load(BASE_PATH + "active_cells.npy")
+    #active_cells = np.load(BASE_PATH + "active_cells.npy")
     active_cell_dict = dict((k, cell_dict[k]) for k in active_cells)
     frequencies = recording_info['frequencies']
     intensities = recording_info['intensities']
