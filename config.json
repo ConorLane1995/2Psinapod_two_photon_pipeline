@@ -1,13 +1,20 @@
 {
-  "RepoDir": "C:/Users/Conor/2Psinapod", 
-  "RecordingFolder": "C:/Users/Conor/Documents/Imaging_Data/Two-Photon/Psilocybin Project/Evoked Cohort Mice/ID186/12012022_GCaMP6s_ID186_psilo/TSeries-12012022-1321-027/suite2p/plane0/",
-  "Triggers": "voltage_recording_corrected.csv",
-  "Trigger_if_wrong": "VoltageRecording-12012022-1321-013_Cycle00001_VoltageRecording_001.csv",
+  "RepoDir": "C:/Users/Conor/2PsinapodConor", 
+  "RecordingFolder": "C:/Users/Conor/Documents/Imaging_Data/Two-Photon/Psilocybin Project/Evoked Cohort Mice/ID276/ID276_07032023_Psilocybin/TSeries-03072023-1303-063/suite2p/plane0/",
+  "Triggers": "TSeries-03072023-1303-063_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 1000,
-  "Conditions": "ID186_12012022_2.mat",
+  "Trigger_if_wrong": "VoltageRecording-12122022-1307-032_Cycle00001_VoltageRecording_001.csv",
+  "Conditions": "ID276_07032023_1.mat",
   "RecordingFR": 10,
   "AnalysisFile": "cells.pkl",
   "EpochStart": -500,
   "EpochEnd": 1000,
-  "TriggerDelay": 0
+  "TriggerDelay": 0,
+
+  "NOTE": "This section is for the plot_MATLAB_matched_cells script.  Input info for the post-injection recording here",
+  "RecordingFolder_2": "C:/Users/Conor/Documents/Imaging_Data/Two-Photon/Psilocybin Project/Evoked Cohort Mice/ID276/ID276_07032023_Psilocybin/TSeries-03072023-1303-064/suite2p/plane0/",
+  "CellMatchFile": "cell_matches.mat",
+  "Conditions_2": "ID276_07032023_2.mat",
+  "Triggers_2": "voltage_recording_corrected.csv"
+
 }
