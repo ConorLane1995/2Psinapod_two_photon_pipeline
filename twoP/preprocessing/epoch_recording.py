@@ -30,7 +30,7 @@ RECORDING_FRAMERATE = config['RecordingFR'] # framerate of the fluorescence reco
 EPOCH_START_IN_MS = config['EpochStart'] # time to include before trial onset for each epoch
 EPOCH_END_IN_MS = config['EpochEnd'] # time to include after trial onset for each epoch
 
-STIM_FL_ERROR_ALLOWED = 10 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
+STIM_FL_ERROR_ALLOWED = 50 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
 """
 Make sure the trigger file is the same length as the fluorescence trace
@@ -213,6 +213,7 @@ def main():
     stimulus = np.genfromtxt(BASE_PATH + CSV_PATH,delimiter=',',skip_header=True) # voltage values of the trigger software over the recording
     conditions_mat = scio.loadmat(BASE_PATH + CONDITIONS_PATH) # conditition type of each trial in chronological order (row 1 = trial 1)
     conditions = conditions_mat["stim_data"]
+    print("number of stimuli: ", len(conditions))
     fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True) # uncorrected trace of dF/F
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True) # estimation of background fluorescence
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True) # Suite2P's estimation of whether each ROI is a cell or not
@@ -226,6 +227,7 @@ def main():
     # get an array of all the stimulus onset times 
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
+    
 
     print('Frequencies presented: {}'.format(np.unique(conditions[:,0])))
     print('Intensities presented: {}'.format(np.unique(conditions[:,1])))
