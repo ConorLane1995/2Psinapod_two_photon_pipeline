@@ -72,7 +72,7 @@ def main():
 
     active_cell_counter = 0 # initialize a counter for the number of responsive cells we find
     for cell in cell_dictionary: # for each cell
-        df = make_pd_df_from_dict(cell_dictionary[cell]['traces'],nFreq,nItsy,nReps)
+        df = make_pd_df_from_dict(cell_dictionary[cell]['deconvolved_traces'],nFreq,nItsy,nReps)
 
         model = ols('activity ~ C(frequency) + C(intensity) + C(frequency):C(intensity)',data=df).fit()
 
@@ -82,8 +82,10 @@ def main():
         if (results['PR(>F)']['C(frequency)'] < 0.05) or (results['PR(>F)']['C(frequency):C(intensity)'] < 0.05):
             active_cell_counter += 1
             cell_dictionary[cell]['active'] = True
+            cell_dictionary[cell]['p_value'] = results['PR(>F)']['C(frequency)']
         else:
             cell_dictionary[cell]['active'] = False
+            cell_dictionary[cell]['p_value'] = results['PR(>F)']['C(frequency)']
 
 
     print("Number of total cells: ")

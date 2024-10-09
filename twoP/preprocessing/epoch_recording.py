@@ -30,7 +30,7 @@ RECORDING_FRAMERATE = config['RecordingFR'] # framerate of the fluorescence reco
 EPOCH_START_IN_MS = config['EpochStart'] # time to include before trial onset for each epoch
 EPOCH_END_IN_MS = config['EpochEnd'] # time to include after trial onset for each epoch
 
-STIM_FL_ERROR_ALLOWED = 50 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
+STIM_FL_ERROR_ALLOWED = 600 # time in seconds to allow as the difference in length between the stim file and fluorescence trace
 
 """
 Make sure the trigger file is the same length as the fluorescence trace
@@ -143,6 +143,7 @@ def format_trials(traces,conditions):
     # use the frequencies we played as the keys of our dictionary (outermost dictionary)
     freq_dict = dict.fromkeys(np.unique(conditions[:,0]))
 
+
     # nest each intensity the frequencies were presented at inside our freq dictionary
     for freq in freq_dict:
         freq_dict[freq] = dict.fromkeys(np.unique(conditions[:,1]))
@@ -184,7 +185,7 @@ Convert the epoched traces from an array to a dictionary
 @param iscell_logigical: nCells x 1 vector with 1 or 0 value to designate whether the ROI is a cell (1) or not (0)
 @return dict_of_cells: dictionary where each cell is a key containing a subdictionary with the trials
 """
-def format_all_cells(epoched_traces,conditions,iscell_logical):
+def format_all_cells(epoched_traces,conditions,iscell_logical,epoched_deconvolved_traces):
     # find the label for each ROI by finding this indices where iscell_logical is 1
     ROI_indices = (iscell_logical[:,0] == 1).nonzero()
     ROI_indices = ROI_indices[0] # extracting the first part of the tuple
@@ -203,7 +204,7 @@ def format_all_cells(epoched_traces,conditions,iscell_logical):
     #                           [x,x,x,x,...] }}}}}
 
     for cell_idx in range(len(cell_IDs)):
-        dict_of_cells[cell_IDs[cell_idx]] = {'traces': format_trials(epoched_traces[cell_idx,:,:],conditions)}
+        dict_of_cells[cell_IDs[cell_idx]] = {'traces': format_trials(epoched_traces[cell_idx,:,:],conditions),'deconvolved_traces': format_trials(epoched_deconvolved_traces[cell_idx,:,:],conditions)}
     
     return dict_of_cells
 
@@ -213,8 +214,9 @@ def main():
     stimulus = np.genfromtxt(BASE_PATH + CSV_PATH,delimiter=',',skip_header=True) # voltage values of the trigger software over the recording
     conditions_mat = scio.loadmat(BASE_PATH + CONDITIONS_PATH) # conditition type of each trial in chronological order (row 1 = trial 1)
     conditions = conditions_mat["stim_data"]
-    print("number of stimuli: ", len(conditions))
+    print(len(conditions)," stimuli were presented")
     fluorescence_trace = np.load(BASE_PATH + "F.npy",allow_pickle=True) # uncorrected trace of dF/F
+    deconvolved_trace = np.load(BASE_PATH + "spks.npy", allow_pickle=True ) # Deconvolved spike train
     neuropil_trace = np.load(BASE_PATH + "Fneu.npy",allow_pickle=True) # estimation of background fluorescence
     iscell_logical = np.load(BASE_PATH + "iscell.npy",allow_pickle=True) # Suite2P's estimation of whether each ROI is a cell or not
     ops = np.load(BASE_PATH + "ops.npy",allow_pickle=True)
@@ -227,7 +229,6 @@ def main():
     # get an array of all the stimulus onset times 
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
-    
 
     print('Frequencies presented: {}'.format(np.unique(conditions[:,0])))
     print('Intensities presented: {}'.format(np.unique(conditions[:,1])))
@@ -238,12 +239,20 @@ def main():
     # get fluorescence traces for the ROIs that are actually cells
     fluo_in_cells = corrected_fluo[np.where(iscell_logical[:,0]==1)[0],:]
 
+    # Get deconvolved traces for the ROIs that are actually cells
+    deconvolved_in_cells = deconvolved_trace[np.where(iscell_logical[:,0]==1)[0],:]
+
+    # epoch the deconvolved traces so we just get activity during trials
+    epoched_deconvolved_traces = epoch_trace(deconvolved_in_cells,stimulus_onset_frames)
+
     # epoch the traces so we just get the fluorescence during trials
     epoched_traces = epoch_trace(fluo_in_cells,stimulus_onset_frames)
     # epoched_traces_all = epoch_trace(corrected_fluo,stimulus_onset_frames)
 
     np.save(BASE_PATH+"raw_corrected_traces.npy",fluo_in_cells) # save the trace for each cell ROI 
+    np.save(BASE_PATH + "raw_deconvolved_traces.npy",deconvolved_in_cells) # save the deconvolved trace for each cell ROI
     np.save(BASE_PATH+"epoched_traces.npy",epoched_traces) # save the trace for trial before it's formatted into a dictionary
+    np.save(BASE_PATH+"epoched_deconvolved_traces.npy",epoched_deconvolved_traces) # save the deconvolved trace for trial before it's formatted into a dictionary
     np.save(BASE_PATH+"onsets.npy",stimulus_onset_frames) # save the list of trigger frames (trial onsets)
 
     # collect some information about the stim to access later on if we want
@@ -253,7 +262,7 @@ def main():
     recording_info['nRepeats'] = np.count_nonzero(np.logical_and(conditions[:,0]==recording_info['frequencies'][0],conditions[:,1] == recording_info['intensities'][0]))
     recording_info['nTrials'] = len(conditions)
 
-    dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical)
+    dictionary_of_cells = format_all_cells(epoched_traces,conditions,iscell_logical,epoched_deconvolved_traces)
 
     # save to the provided output path
     with open(BASE_PATH+OUTPUT_PATH,'wb') as f:

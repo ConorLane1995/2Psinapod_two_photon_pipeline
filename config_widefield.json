@@ -1,16 +1,16 @@
 {
   "RepoDir": "C:/Users/Conor/2PsinapodConor", 
-  "RecordingFolder": "C:/Users/Conor/Documents/Imaging_Data/Widefield_Tests/18102022_GCaMP6s_ID173/ID173_18102022_GCaMP6s_5",
-  "TIFF": "ID173_18102022_rec_5/",
-  "Triggers": "VoltageRecording-10172022-1524-109_Cycle00001_VoltageRecording_001.csv",
+  "RecordingFolder": "L:/widefield/ID529_psilo/day_1/ID529_07032024_GCaMP6s_1/",
+  "TIFF": "rec_1/",
+  "Triggers": "VoltageRecording-01012009-0006-144_Cycle00001_VoltageRecording_001.csv",
   "TriggerFR": 100,
-  "Conditions": "ID173_18102022_5.mat",
+  "Conditions": "ID529_07032024_Day_1_1.mat",
   "RecordingFR": 10,
-  "BaselineFrames": 6,
+  "BaselineFrames": 5,
   "EpochStart": -500,
   "EpochEnd": 2000,
-  "ResponseStart": 7,
-  "ResponseStop": 15,
+  "ResponseStart": 5,
+  "ResponseStop": 12,
   "TriggerDelay": 0,
-  "ZscoreThreshold": 0 
+  "ZscoreThreshold": 1
 }

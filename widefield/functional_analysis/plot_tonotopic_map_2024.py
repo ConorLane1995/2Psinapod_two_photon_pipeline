@@ -333,11 +333,11 @@ def main():
         # with open(BASE_PATH+"median_zscore_dict.pkl",'wb') as f:
         #         pickle.dump(median_zscore_dict,f)
 
-        with open(BASE_PATH+"median_zscore_dict.pkl", 'rb') as f:
+        with open(BASE_PATH+"max_dict_test.pkl", 'rb') as f:
                 median_zscore_dict = pickle.load(f)
 
-        # Normalize the individual frequency so that they are z-scored relative to all of the pixels for that frequency. 
-        # This irons out potential bias in the map from the entire cortex being more responsive to particular frequency ranges. 
+        # # Normalize the individual frequency so that they are z-scored relative to all of the pixels for that frequency. 
+        # # This irons out potential bias in the map from the entire cortex being more responsive to particular frequency ranges. 
         for key,value in median_zscore_dict.items():
                median_zscore_dict[key] = scipy.stats.zscore((np.squeeze(value)),axis=None)
         

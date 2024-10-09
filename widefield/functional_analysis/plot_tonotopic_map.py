@@ -19,6 +19,7 @@ import pickle
 import json
 import scipy.io as scio
 import pickle
+import scipy
 
 
 # load what we need from the config file
@@ -303,28 +304,36 @@ def main():
         conditions = conditions_mat["stim_data"]
         conditions = conditions[3:]  #Remove the first silent stim as this corresponds to frame 0
 
-        # get an array of all the stimulus onset times 
-        # converted to be frames at the recording frame rate
-        onset_frames = get_onset_frames(stimulus)
+        # # get an array of all the stimulus onset times 
+        # # converted to be frames at the recording frame rate
+        # onset_frames = get_onset_frames(stimulus)
 
-        #Load the recording to be analyzed
-        video = load_recording(TIFF)
+        # #Load the recording to be analyzed
+        # video = load_recording(TIFF)
 
-        # #separate recording into individual trials using onset frames 
-        epoched_pixels = epoch_trials(video,onset_frames)
+        # # #separate recording into individual trials using onset frames 
+        # epoched_pixels = epoch_trials(video,onset_frames)
 
-        # # #Baseline adjust each trial (subtract 5 pre-stimulus frames from response)
-        baseline_adjusted_epoched = baseline_adjust_pixels(epoched_pixels)
+        # # # #Baseline adjust each trial (subtract 5 pre-stimulus frames from response)
+        # baseline_adjusted_epoched = baseline_adjust_pixels(epoched_pixels)
 
-        # #Format trials into a dictionary arranged by frequency
-        freq_dict = format_trials(baseline_adjusted_epoched,conditions)
+        # # #Format trials into a dictionary arranged by frequency
+        # freq_dict = format_trials(baseline_adjusted_epoched,conditions)
 
-        # Zscore the individual trials, and return a dict of single median value of the trial period, for each pixel.    
-        median_zscore_dict = zscore_and_median(freq_dict,conditions)
+        # # Zscore the individual trials, and return a dict of single median value of the trial period, for each pixel.    
+        # median_zscore_dict = zscore_and_median(freq_dict,conditions)
 
-        # save the recording information 
-        with open(BASE_PATH+"median_zscore_dict.pkl",'wb') as f:
-                pickle.dump(median_zscore_dict,f)
+        # # save the recording information 
+        # with open(BASE_PATH+"median_zscore_dict.pkl",'wb') as f:
+        #         pickle.dump(median_zscore_dict,f)
+
+        with open(BASE_PATH+"median_zscore_dict.pkl", 'rb') as f:
+                median_zscore_dict = pickle.load(f)
+
+         # Normalize the individual frequency so that they are z-scored relative to all of the pixels for that frequency. 
+        # This irons out potential bias in the map from the entire cortex being more responsive to particular frequency ranges. 
+        for key,value in median_zscore_dict.items():
+               median_zscore_dict[key] = scipy.stats.zscore((np.squeeze(value)),axis=None)
 
         thresholded_dict = threshold_responses(median_zscore_dict)
 

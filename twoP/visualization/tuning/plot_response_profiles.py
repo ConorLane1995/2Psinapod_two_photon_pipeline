@@ -11,6 +11,7 @@ import numpy as np
 import pickle
 import json
 import os
+import matplotlib
 
 # load what we need from the config file
 with open(os.path.abspath(os.path.dirname(__file__)) +'/../../../config.json','r') as f:
@@ -35,8 +36,8 @@ Function to find the best frequency of a neuron based on the freq that elicited 
 @return the frequency that elicited the strongest median response across intensities
 """
 def get_best_frequency(cell_tuning,freqs):
-    median_across_itsies = np.median(cell_tuning, axis=1)
-    max_response_idx = np.argmax(median_across_itsies)
+    max_across_itsies = np.max(cell_tuning, axis=1)
+    max_response_idx = np.argmax(max_across_itsies)
     return freqs[max_response_idx]
 
 """
@@ -86,28 +87,32 @@ def main():
     sorted_inactive_profiles = [x for _,x in sorted(zip(inactive_BFs,inactive_profiles))]
 
     # concatenate the active and inactive into one list
-    full_profiles = sorted_active_profiles + sorted_inactive_profiles
+    full_profiles = sorted_active_profiles + inactive_profiles
 
     # make our figure
+    x = np.arange(0,12,1)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.imshow(full_profiles,cmap=plt.cm.magma) # plot the profiles
+    normalize = matplotlib.colors.Normalize(vmin=0,vmax=15)
+    ax.imshow(full_profiles,cmap=plt.cm.jet,norm=normalize) # plot the profiles
     forceAspect(ax,aspect=0.5) # resize so the pixels aren't square (looks terrible that way)
-    ax.axhline(y=len(active_BFs),color='white') # add a line to divide the active and inactive cells
+    ax.plot([np.min(x), np.max(x)], [len(sorted_active_profiles)]*2, '--',color='r')
+    plt.yticks(fontsize=11)
 
     # label every other frequency
     ax.set_xticks(range(0,len(freqs),2)) 
-    ax.set_xticklabels(["{:4.1f}".format(i) for i in freqs[range(0,len(freqs),2)]])
+    ax.set_xticklabels(["{:4.1f}".format(i) for i in freqs[range(0,len(freqs),2)]],rotation=45,fontsize=11)
 
     # add a color bar showing the range of values we're looking at
-    cbar = fig.colorbar(cm.ScalarMappable(norm=mpl.colors.Normalize(vmin=min(min(full_profiles)),vmax=max(max(full_profiles))),cmap=plt.cm.magma))
+    cbar = fig.colorbar(cm.ScalarMappable(norm=normalize,cmap=plt.cm.jet))
     
     # label everything
-    cbar.set_label("Z-Scores from baseline (avgd over all intensities)")
-    plt.xlabel("Frequency (kHz)")
-    plt.ylabel("Cells")
-    plt.title("Active cells (above white line) and inactive cells sorted by BF")
+    cbar.set_label("Mean Response (Z-Score)",fontsize=12,labelpad=10)
+    plt.xlabel("Frequency (kHz)",fontsize=12,labelpad=10)
+    plt.ylabel("Neurons",fontsize=12,labelpad=10)
+    plt.tight_layout()
     plt.show()
+
 
 
 if __name__ == "__main__":
