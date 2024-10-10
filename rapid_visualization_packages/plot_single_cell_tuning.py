@@ -17,7 +17,7 @@ with open(os.path.abspath(os.path.dirname(__file__)) +'/../../../config.json','r
 BASE_PATH = config['RecordingFolder']
 CELL_DICT_FILE = config['AnalysisFile']
 
-CELL_OF_INTEREST = 50
+CELL_OF_INTEREST = 809
 
 """
 Shows the tuning heatmap for a single cell, specified by the CELL_OF_INTEREST ID number
@@ -101,8 +101,8 @@ def main():
     frequencies = recording_info['frequencies']
     intensities = recording_info['intensities']
 
-    plot_single_tuning_curve(cell_dict[CELL_OF_INTEREST]['peak_tuning'],CELL_OF_INTEREST,frequencies,intensities)
-    plot_tuning_traces(cell_dict[CELL_OF_INTEREST]['deconvolved_traces'],len(frequencies),len(intensities),100)
+    plot_single_tuning_curve(cell_dict[CELL_OF_INTEREST]['tuning'],CELL_OF_INTEREST,frequencies,intensities)
+    plot_tuning_traces(cell_dict[CELL_OF_INTEREST]['traces'],len(frequencies),len(intensities),100)
     plt.show()
 
 if __name__=="__main__":

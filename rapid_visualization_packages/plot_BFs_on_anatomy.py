@@ -1,7 +1,3 @@
-"""
-TODO doc
-"""
-
 
 import pickle
 import json

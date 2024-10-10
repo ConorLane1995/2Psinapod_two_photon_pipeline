@@ -16,6 +16,7 @@
   "TriggerDelay": 0,
   "ZscoreThreshold": 2,
   "TriggerFR": 1000,
-  "Neuropil": 0.7
+  "Neuropil": 0.7,
 
+  "CompilationFolder": "F:/Two-Photon/Psilocybin Project/Evoked Cohort Mice/compiled_dicts/"
 }

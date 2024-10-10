@@ -403,6 +403,8 @@ def compute_single_baseline(cell_trace,n_baseline_frames):
     
     return baselines
 
+
+
 """
 Add tuning information to the big dictionary for each cell
 @param cell_dictionary: the big cell dictionary where each cell is a key holding sub dictionaries
