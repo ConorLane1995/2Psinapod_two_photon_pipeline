@@ -14,7 +14,7 @@
   "EpochStart": -500,
   "EpochEnd": 1000,
   "TriggerDelay": 0,
-  "zscore_threshold": 2,
+  "ZscoreThreshold": 2,
   "TriggerFR": 1000,
   "Neuropil": 0.7
 

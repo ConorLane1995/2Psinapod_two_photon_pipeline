@@ -5,7 +5,7 @@ OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
         onsets.npy - list of frames where triggers occured
         raw_corrected_traces.npy - nNeurons x nFrames fluorescence traces (not epoched)
         cell_dictionary (.pkl) - dictionary of each cell ROI with epoched traces stored in {'traces' {freq {intensity {repetition}}}}
-AUTHOR: Conor Lane, Veronica Tarka, January 2022, conor.lane1995@gmail.com
+AUTHORS: Conor Lane, Veronica Tarka, January 2022, conor.lane1995@gmail.com
 """
 
 import time
