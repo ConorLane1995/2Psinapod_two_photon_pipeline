@@ -3,7 +3,7 @@ Script to estimate each cells' response to each frequency x intensity combinatio
 Adds the tuning estimates into the big dictionary under the key 'tuning'
 INPUT: cell_dictionary.pkl, recording_info.pkl
 OUTPUT: cell_dictionary.pkl now with a key 'tuning' with response estimates to the stim types
-AUTHOR: Veronica Tarka, May 2022, veronica.tarka@mail.mcgill.ca
+AUTHOR: Conor Lane, Veronica Tarka, May 2022, conor.lane1995@gmail.com
 """
 import matplotlib.pyplot as plt
 import numpy as np

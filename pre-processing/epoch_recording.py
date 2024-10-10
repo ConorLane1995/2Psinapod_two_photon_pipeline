@@ -5,7 +5,7 @@ OUTPUT: epoched_F.npy formatted as nCells x nTrials x nFrames array
         onsets.npy - list of frames where triggers occured
         raw_corrected_traces.npy - nNeurons x nFrames fluorescence traces (not epoched)
         cell_dictionary (.pkl) - dictionary of each cell ROI with epoched traces stored in {'traces' {freq {intensity {repetition}}}}
-AUTHOR: Veronica Tarka, January 2022, veronica.tarka@mail.mcgill.ca
+AUTHOR: Conor Lane, Veronica Tarka, January 2022, conor.lane1995@gmail.com
 """
 
 import scipy.io as scio
@@ -53,7 +53,7 @@ def are_valid_files(stimulus_len,fluorescence_len):
 """
 Find the stimulus onsets from the trigger CSV and define as frames in the fluorescence recording
 @param stimulus: 1D vector of the voltage trace of the stimulus triggers
-@return onset_frames_at_recording_fr: a list of the frames in the fluo recording where the stim was presented
+@return onset_frames: a list of the frames in the fluo recording where the stim was presented
 """
 def get_onset_frames(stimulus):
     # find the max voltage (this will be the value in the vector when the trigger was sent)
@@ -82,9 +82,9 @@ def get_onset_frames(stimulus):
                 time_list_index += 1
 
     # get the onset times in terms of frames of our fluorescence trace
-    onset_frames_at_recording_fr = np.multiply(onset_times,RECORDING_FRAMERATE) # s * f/s = f
+    onset_frames = np.multiply(onset_times,RECORDING_FRAMERATE) # s * f/s = f
 
-    return onset_frames_at_recording_fr # a list of stimulus onsets in units of frames at recording framerate
+    return onset_frames # a list of stimulus onsets in units of frames at recording framerate
 
 """
 Divide the fluorescence traces into trials (from ROI x frames array to ROI x trials x frames array)
@@ -229,6 +229,7 @@ def main():
     # get an array of all the stimulus onset times 
     # converted to be frames at the recording frame rate
     stimulus_onset_frames = get_onset_frames(stimulus)
+    print(stimulus_onset_frames)
 
     print('Frequencies presented: {}'.format(np.unique(conditions[:,0])))
     print('Intensities presented: {}'.format(np.unique(conditions[:,1])))
