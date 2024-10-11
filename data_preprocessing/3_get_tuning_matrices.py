@@ -5,6 +5,9 @@ INPUT: cell_dictionary.pkl, recording_info.pkl
 OUTPUT: cell_dictionary.pkl now with a key 'tuning' with response estimates to the stim types
 AUTHOR: Conor Lane, Veronica Tarka, May 2022, conor.lane1995@gmail.com
 """
+
+import time
+start_time = time.time()
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
 import numpy as np
@@ -200,3 +203,8 @@ def main():
 if __name__ == '__main__':
     main()
 
+end_time = time.time()
+
+# Calculate the elapsed time
+elapsed_time = end_time - start_time
+print(f"Runtime: {elapsed_time:.2f} seconds")
